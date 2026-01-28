@@ -8,7 +8,8 @@ import {
   ChevronDown,
   ChevronRight,
   Server,
-  LayoutDashboard
+  LayoutDashboard,
+  Phone
 } from "lucide-react";
 import { useSites } from "@/hooks/use-voiceview";
 import { useState, useMemo } from "react";
@@ -26,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertSiteSchema, regions } from "@shared/schema";
+import { insertSiteSchema, regions, telephonySystems } from "@shared/schema";
 import { useCreateSite } from "@/hooks/use-voiceview";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
@@ -40,6 +41,7 @@ export function Sidebar() {
     "East": true,
     "West": true
   });
+  const [expandedTelephony, setExpandedTelephony] = useState(false);
 
   const sitesByRegion = useMemo(() => {
     if (!sites) return {};
@@ -126,6 +128,40 @@ export function Sidebar() {
             )}
           </div>
         ))}
+
+        <div className="pt-4 pb-2 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          Systems
+        </div>
+
+        <div className="space-y-1">
+          <button
+            onClick={() => setExpandedTelephony(!expandedTelephony)}
+            className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium hover:text-white hover:bg-slate-800 rounded-lg transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <Phone className="h-4 w-4 text-slate-500 group-hover:text-slate-300" />
+              Telephony
+            </div>
+            {expandedTelephony ? (
+              <ChevronDown className="h-3 w-3 opacity-50" />
+            ) : (
+              <ChevronRight className="h-3 w-3 opacity-50" />
+            )}
+          </button>
+          
+          {expandedTelephony && (
+            <div className="ml-9 space-y-1 border-l border-slate-800 pl-2">
+              {telephonySystems.map(system => (
+                <div 
+                  key={system} 
+                  className="block px-3 py-1.5 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors"
+                >
+                  {system}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Footer / Add Site */}

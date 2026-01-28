@@ -113,79 +113,36 @@ async function seedDatabase() {
   if (existingSites.length === 0) {
     console.log("Seeding database...");
     
-    // London Site (North)
-    const london = await storage.createSite({
-      name: "London",
-      region: "North",
-      description: "Primary HQ for North region",
-      code: "LON"
-    });
+    // North Sites
+    const northSites = [
+      "Reading", "Ireland", "London", "Jersey", "Isle of Man", 
+      "Mann Island", "Guernsey", "Zurich", "Amsterdam"
+    ];
+    for (const name of northSites) {
+      await storage.createSite({ name, region: "North", code: name.substring(0, 3).toUpperCase() });
+    }
 
-    await storage.updateConnectivity(london.id, {
-      linkType: "Fiber 1Gbps",
-      ispName: "British Telecom",
-      ispContact: "support@bt.com | +44 800 123 456",
-      localItContact: "John Smith | ext 1001"
-    });
+    // East Sites
+    const eastSites = ["Mumbai", "Mauritius"];
+    for (const name of eastSites) {
+      await storage.createSite({ name, region: "East", code: name.substring(0, 3).toUpperCase() });
+    }
 
-    await storage.createService({ siteId: london.id, serviceType: "Switchboard", details: "Main Reception Console", status: "Active" });
-    await storage.createService({ siteId: london.id, serviceType: "Recording", details: "NICE Engage 6.5", status: "Active" });
-    await storage.createService({ siteId: london.id, serviceType: "TMS", details: "Proteus", status: "Active" });
+    // West Sites
+    const westSites = ["New York"];
+    for (const name of westSites) {
+      await storage.createSite({ name, region: "West", code: name.substring(0, 3).toUpperCase() });
+    }
 
-    await storage.createTelephony({
-      siteId: london.id,
-      platform: "Microsoft Teams",
-      numberRanges: ["+44 20 7123 0000 - 0999", "+44 20 7123 5000 - 5099"]
-    });
-    
-    await storage.createTelephony({
-      siteId: london.id,
-      platform: "Cisco",
-      numberRanges: ["+44 20 7999 1000 - 1099"]
-    });
-
-    // Cape Town Site (South)
-    const capeTown = await storage.createSite({
-      name: "Cape Town",
-      region: "South",
-      description: "Regional Office",
-      code: "CPT"
-    });
-
-    await storage.updateConnectivity(capeTown.id, {
-      linkType: "Microwave",
-      ispName: "Vodacom",
-      ispContact: "support@vodacom.co.za",
-      localItContact: "Sarah Jones"
-    });
-    
-    await storage.createTelephony({
-      siteId: capeTown.id,
-      platform: "Microsoft Teams",
-      numberRanges: ["+27 21 418 0000 - 0999"]
-    });
-
-     // Dubai (East)
-     const dubai = await storage.createSite({
-      name: "Dubai",
-      region: "East",
-      description: "Middle East Hub",
-      code: "DXB"
-    });
-    
-    await storage.createTelephony({
-      siteId: dubai.id,
-      platform: "Avaya",
-      numberRanges: ["+971 4 123 4567"]
-    });
-
-     // New York (West)
-     const ny = await storage.createSite({
-      name: "New York",
-      region: "West",
-      description: "US Operations",
-      code: "NYC"
-    });
+    // South Sites
+    const southSites = [
+      "Sandton", "Pretoria", "Cape Town", "Tyger Valley", "Stellenbosch",
+      "Paarl", "George", "Knysna", "East London", "Port Elizabeth",
+      "Durban", "Pietermaritzburg", "Bloemfontein", "Nelspruit"
+    ];
+    for (const name of southSites) {
+      await storage.createSite({ name, region: "South", code: name.substring(0, 3).toUpperCase() });
+    }
 
     console.log("Database seeded!");
   }

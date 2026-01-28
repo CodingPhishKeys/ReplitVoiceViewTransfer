@@ -6,7 +6,7 @@ import { relations } from "drizzle-orm";
 
 // === Enums ===
 export const regions = ["North", "South", "East", "West"] as const;
-export const telephonySystems = ["Microsoft Teams", "Cisco", "Avaya", "IPC", "Cloud", "Other"] as const;
+export const telephonySystems = ["Microsoft Teams", "Avaya", "Cisco", "CX One", "IP Trade", "eFax", "Other"] as const;
 
 // === Tables ===
 
