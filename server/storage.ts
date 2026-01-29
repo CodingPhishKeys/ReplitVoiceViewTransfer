@@ -1,8 +1,8 @@
-
 import { db } from "./db";
 import {
-  sites, siteConnectivity, siteServices, siteTelephony, siteDiagrams,
+  sites, siteInfo, siteConnectivity, siteServices, siteTelephony, siteDiagrams,
   type Site, type InsertSite,
+  type SiteInfo, type InsertSiteInfo,
   type SiteConnectivity, type InsertConnectivity,
   type SiteService, type InsertService,
   type SiteTelephony, type InsertTelephony,
@@ -15,12 +15,17 @@ export interface IStorage {
   getSites(): Promise<Site[]>;
   getSite(id: number): Promise<Site | undefined>;
   getSiteWithDetails(id: number): Promise<Site & {
+    info: SiteInfo[],
     connectivity: SiteConnectivity | null,
     services: SiteService[],
     telephony: SiteTelephony[],
     diagrams: SiteDiagram[]
   } | undefined>;
   createSite(site: InsertSite): Promise<Site>;
+
+  // Info
+  createSiteInfo(info: InsertSiteInfo): Promise<SiteInfo>;
+  deleteSiteInfo(id: number): Promise<void>;
 
   // Connectivity
   updateConnectivity(siteId: number, data: Omit<InsertConnectivity, "siteId">): Promise<SiteConnectivity>;
@@ -50,6 +55,7 @@ export class DatabaseStorage implements IStorage {
     const site = await this.getSite(id);
     if (!site) return undefined;
 
+    const info = await db.select().from(siteInfo).where(eq(siteInfo.siteId, id));
     const [connectivity] = await db.select().from(siteConnectivity).where(eq(siteConnectivity.siteId, id));
     const services = await db.select().from(siteServices).where(eq(siteServices.siteId, id));
     const telephony = await db.select().from(siteTelephony).where(eq(siteTelephony.siteId, id));
@@ -57,6 +63,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...site,
+      info,
       connectivity: connectivity || null,
       services,
       telephony,
@@ -69,8 +76,16 @@ export class DatabaseStorage implements IStorage {
     return site;
   }
 
+  async createSiteInfo(info: InsertSiteInfo): Promise<SiteInfo> {
+    const [newInfo] = await db.insert(siteInfo).values(info).returning();
+    return newInfo;
+  }
+
+  async deleteSiteInfo(id: number): Promise<void> {
+    await db.delete(siteInfo).where(eq(siteInfo.id, id));
+  }
+
   async updateConnectivity(siteId: number, data: Omit<InsertConnectivity, "siteId">): Promise<SiteConnectivity> {
-    // Check if exists
     const existing = await db.select().from(siteConnectivity).where(eq(siteConnectivity.siteId, siteId));
     
     if (existing.length > 0) {

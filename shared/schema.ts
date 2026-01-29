@@ -1,4 +1,3 @@
-
 import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -14,8 +13,17 @@ export const sites = pgTable("sites", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   region: text("region", { enum: regions }).notNull(),
-  description: text("description"), // General Site Info
   code: text("code"), // e.g. "LON"
+});
+
+export const siteInfo = pgTable("site_info", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").references(() => sites.id).notNull(),
+  address: text("address"),
+  mainNumber: text("main_number"),
+  itManager: text("it_manager"),
+  numberOfUsers: text("number_of_users"),
+  otherInfo: text("other_info"),
 });
 
 export const siteConnectivity = pgTable("site_connectivity", {
@@ -53,10 +61,18 @@ export const siteDiagrams = pgTable("site_diagrams", {
 // === Relations ===
 
 export const sitesRelations = relations(sites, ({ one, many }) => ({
-  connectivity: one(siteConnectivity), // Assuming one main connectivity record per site for simplicity, or could be many
+  info: many(siteInfo),
+  connectivity: one(siteConnectivity),
   services: many(siteServices),
   telephony: many(siteTelephony),
   diagrams: many(siteDiagrams),
+}));
+
+export const siteInfoRelations = relations(siteInfo, ({ one }) => ({
+  site: one(sites, {
+    fields: [siteInfo.siteId],
+    references: [sites.id],
+  }),
 }));
 
 export const connectivityRelations = relations(siteConnectivity, ({ one }) => ({
@@ -90,6 +106,7 @@ export const diagramsRelations = relations(siteDiagrams, ({ one }) => ({
 // === Schemas ===
 
 export const insertSiteSchema = createInsertSchema(sites).omit({ id: true });
+export const insertSiteInfoSchema = createInsertSchema(siteInfo).omit({ id: true });
 export const insertConnectivitySchema = createInsertSchema(siteConnectivity).omit({ id: true });
 export const insertServiceSchema = createInsertSchema(siteServices).omit({ id: true });
 export const insertTelephonySchema = createInsertSchema(siteTelephony).omit({ id: true });
@@ -99,6 +116,9 @@ export const insertDiagramSchema = createInsertSchema(siteDiagrams).omit({ id: t
 
 export type Site = typeof sites.$inferSelect;
 export type InsertSite = z.infer<typeof insertSiteSchema>;
+
+export type SiteInfo = typeof siteInfo.$inferSelect;
+export type InsertSiteInfo = z.infer<typeof insertSiteInfoSchema>;
 
 export type SiteConnectivity = typeof siteConnectivity.$inferSelect;
 export type InsertConnectivity = z.infer<typeof insertConnectivitySchema>;

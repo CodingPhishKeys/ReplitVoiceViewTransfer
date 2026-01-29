@@ -1,12 +1,13 @@
-
 import { z } from 'zod';
 import { 
   insertSiteSchema, 
+  insertSiteInfoSchema,
   insertConnectivitySchema, 
   insertServiceSchema, 
   insertTelephonySchema, 
   insertDiagramSchema,
   sites,
+  siteInfo,
   siteConnectivity,
   siteServices,
   siteTelephony,
@@ -46,6 +47,7 @@ export const api = {
       path: '/api/sites/:id',
       responses: {
         200: z.custom<typeof sites.$inferSelect & { 
+          info: typeof siteInfo.$inferSelect[],
           connectivity: typeof siteConnectivity.$inferSelect | null,
           services: typeof siteServices.$inferSelect[],
           telephony: typeof siteTelephony.$inferSelect[],
@@ -64,9 +66,26 @@ export const api = {
       },
     }
   },
-  // Sub-resources could be nested or flat. Flat is often easier for simple CRUD.
+  info: {
+    create: {
+      method: 'POST' as const,
+      path: '/api/sites/:siteId/info',
+      input: insertSiteInfoSchema.omit({ siteId: true }),
+      responses: {
+        201: z.custom<typeof siteInfo.$inferSelect>(),
+        404: errorSchemas.notFound,
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/info/:id',
+      responses: {
+        204: z.void(),
+      }
+    }
+  },
   connectivity: {
-    update: { // Upsert semantics usually best for 1:1 relations
+    update: { 
       method: 'POST' as const,
       path: '/api/sites/:siteId/connectivity',
       input: insertConnectivitySchema.omit({ siteId: true }),

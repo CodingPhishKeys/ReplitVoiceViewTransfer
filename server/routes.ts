@@ -102,11 +102,26 @@ export async function registerRoutes(
     }
   });
 
-  // Seed Data
-  await seedDatabase();
+  // === Info ===
+  app.post(api.info.create.path, async (req, res) => {
+    try {
+      const input = api.info.create.input.parse(req.body);
+      const siteId = Number(req.params.siteId);
+      const info = await storage.createSiteInfo({ ...input, siteId });
+      res.status(201).json(info);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
 
-  return httpServer;
-}
+  app.delete(api.info.delete.path, async (req, res) => {
+    await storage.deleteSiteInfo(Number(req.params.id));
+    res.status(204).send();
+  });
+
 
 async function seedDatabase() {
   const existingSites = await storage.getSites();
