@@ -1,40 +1,128 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, MapPin, Hash, Info } from "lucide-react";
-import type { Site } from "@shared/schema";
+import { Globe, MapPin, Hash, Info, Plus, User, Users, FileText, Phone, Trash2 } from "lucide-react";
+import type { Site, SiteInfo } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertSiteInfoSchema } from "@shared/schema";
+import { useAddSiteInfo, useDeleteSiteInfo } from "@/hooks/use-voiceview";
+import type { z } from "zod";
 
-export function SiteOverview({ site }: { site: Site }) {
+type SiteWithDetails = Site & { info: SiteInfo[] };
+
+export function SiteOverview({ site }: { site: SiteWithDetails }) {
+  const deleteInfo = useDeleteSiteInfo();
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {/* Main Info Card */}
       <Card className="col-span-2 border-l-4 border-l-primary shadow-sm">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg flex items-center gap-2">
             <Info className="h-5 w-5 text-primary" />
             General Information
           </CardTitle>
+          <AddInfoDialog siteId={site.id} />
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground leading-relaxed">
-            {site.description || "No description available for this site."}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
-              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-md">
-                <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="space-y-6">
+            {site.info && site.info.length > 0 ? (
+              <div className="grid gap-4">
+                {site.info.map((info) => (
+                  <div key={info.id} className="relative group bg-muted/30 rounded-xl p-4 border border-border/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {info.address && (
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">Address</p>
+                            <p className="text-sm">{info.address}</p>
+                          </div>
+                        </div>
+                      )}
+                      {info.mainNumber && (
+                        <div className="flex items-start gap-3">
+                          <Phone className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">Main Number</p>
+                            <p className="text-sm">{info.mainNumber}</p>
+                          </div>
+                        </div>
+                      )}
+                      {info.itManager && (
+                        <div className="flex items-start gap-3">
+                          <User className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">IT Manager</p>
+                            <p className="text-sm">{info.itManager}</p>
+                          </div>
+                        </div>
+                      )}
+                      {info.numberOfUsers && (
+                        <div className="flex items-start gap-3">
+                          <Users className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">Number of Users</p>
+                            <p className="text-sm">{info.numberOfUsers}</p>
+                          </div>
+                        </div>
+                      )}
+                      {info.otherInfo && (
+                        <div className="flex items-start gap-3 col-span-full">
+                          <FileText className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">Other Info</p>
+                            <p className="text-sm whitespace-pre-wrap">{info.otherInfo}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => deleteInfo.mutate(info.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium uppercase">Region</p>
-                <p className="font-semibold text-foreground">{site.region}</p>
+            ) : (
+              <p className="text-muted-foreground leading-relaxed text-center py-8">
+                No detailed information added for this site yet.
+              </p>
+            )}
+
+            <div className="pt-4 border-t border-border/50 flex flex-wrap gap-4">
+              <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-md">
+                  <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase">Region</p>
+                  <p className="font-semibold text-foreground">{site.region}</p>
+                </div>
               </div>
-            </div>
-            <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
-              <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-md">
-                <Hash className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium uppercase">Site Code</p>
-                <p className="font-semibold text-foreground">{site.code || "N/A"}</p>
+              <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-md">
+                  <Hash className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase">Site Code</p>
+                  <p className="font-semibold text-foreground">{site.code || "N/A"}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -42,7 +130,7 @@ export function SiteOverview({ site }: { site: Site }) {
       </Card>
 
       {/* Quick Stats / Status Placeholder */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm h-fit">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <ActivityIcon />
@@ -66,6 +154,121 @@ export function SiteOverview({ site }: { site: Site }) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function AddInfoDialog({ siteId }: { siteId: number }) {
+  const [open, setOpen] = useState(false);
+  const addInfo = useAddSiteInfo();
+  
+  const form = useForm<z.infer<typeof insertSiteInfoSchema>>({
+    resolver: zodResolver(insertSiteInfoSchema),
+    defaultValues: {
+      siteId,
+      address: "",
+      mainNumber: "",
+      itManager: "",
+      numberOfUsers: "",
+      otherInfo: ""
+    }
+  });
+
+  const onSubmit = (data: z.infer<typeof insertSiteInfoSchema>) => {
+    addInfo.mutate({ ...data, siteId }, {
+      onSuccess: () => {
+        setOpen(false);
+        form.reset();
+      }
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="gap-2">
+          <Plus className="h-4 w-4" /> Add Info
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Add Site Information</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Corporate Way..." {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="mainNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Main Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+44 20..." {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="itManager"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>IT Manager</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Name..." {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="numberOfUsers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Users</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. 250" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="otherInfo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Other Info</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Access hours, local quirks..." {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={addInfo.isPending}>
+              {addInfo.isPending ? "Adding..." : "Add Information"}
+            </Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
