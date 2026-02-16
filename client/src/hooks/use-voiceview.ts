@@ -5,7 +5,8 @@ import {
   type InsertConnectivity, 
   type InsertService, 
   type InsertTelephony, 
-  type InsertDiagram 
+  type InsertDiagram,
+  type InsertSiteInfo 
 } from "@shared/schema";
 
 // === Sites ===
@@ -133,7 +134,40 @@ export function useAddTelephony() {
   });
 }
 
-// === Diagrams ===
+// === Info ===
+
+export function useAddSiteInfo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ siteId, ...data }: InsertSiteInfo & { siteId: number }) => {
+      const url = buildUrl(api.info.create.path, { siteId });
+      const res = await fetch(url, {
+        method: api.info.create.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to add site info");
+      return api.info.create.responses[201].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
+export function useDeleteSiteInfo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.info.delete.path, { id });
+      const res = await fetch(url, { method: api.info.delete.method });
+      if (!res.ok) throw new Error("Failed to delete site info");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path] });
+    },
+  });
+}
 
 export function useAddDiagram() {
   const queryClient = useQueryClient();
