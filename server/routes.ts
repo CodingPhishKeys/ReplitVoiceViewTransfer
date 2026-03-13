@@ -86,6 +86,12 @@ export async function registerRoutes(
   });
 
   // === Telephony ===
+  app.get(api.telephony.byPlatform.path, async (req, res) => {
+    const platform = decodeURIComponent(req.params.platform);
+    const records = await storage.getTelephonyByPlatform(platform);
+    res.json(records);
+  });
+
   app.post(api.telephony.create.path, async (req, res) => {
     try {
       const input = api.telephony.create.input.parse(req.body);

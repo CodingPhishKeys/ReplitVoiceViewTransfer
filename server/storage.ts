@@ -37,6 +37,7 @@ export interface IStorage {
   deleteService(id: number): Promise<void>;
 
   // Telephony
+  getTelephonyByPlatform(platform: string): Promise<Array<SiteTelephony & { site: Site }>>;
   createTelephony(telephony: InsertTelephony): Promise<SiteTelephony>;
   updateTelephony(id: number, data: Omit<InsertTelephony, "siteId">): Promise<SiteTelephony>;
   deleteTelephony(id: number): Promise<void>;
@@ -125,6 +126,15 @@ export class DatabaseStorage implements IStorage {
 
   async deleteService(id: number): Promise<void> {
     await db.delete(siteServices).where(eq(siteServices.id, id));
+  }
+
+  async getTelephonyByPlatform(platform: string): Promise<Array<SiteTelephony & { site: Site }>> {
+    const results = await db
+      .select()
+      .from(siteTelephony)
+      .innerJoin(sites, eq(siteTelephony.siteId, sites.id))
+      .where(eq(siteTelephony.platform, platform));
+    return results.map(r => ({ ...r.site_telephony, site: r.sites }));
   }
 
   async createTelephony(telephony: InsertTelephony): Promise<SiteTelephony> {

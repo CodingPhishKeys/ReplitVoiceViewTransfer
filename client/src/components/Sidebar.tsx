@@ -152,12 +152,18 @@ export function Sidebar() {
           {expandedTelephony && (
             <div className="ml-9 space-y-1 border-l border-slate-800 pl-2">
               {telephonySystems.map(system => (
-                <div 
-                  key={system} 
-                  className="block px-3 py-1.5 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors"
+                <Link
+                  key={system}
+                  href={`/telephony/${encodeURIComponent(system)}`}
+                  className={cn(
+                    "block px-3 py-1.5 text-sm rounded-md transition-colors",
+                    location === `/telephony/${encodeURIComponent(system)}`
+                      ? "text-blue-400 font-medium bg-blue-900/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  )}
                 >
                   {system}
-                </div>
+                </Link>
               ))}
             </div>
           )}

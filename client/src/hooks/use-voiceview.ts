@@ -134,6 +134,19 @@ export function useDeleteService() {
 
 // === Telephony ===
 
+export function useTelephonyByPlatform(platform: string) {
+  return useQuery({
+    queryKey: [api.telephony.byPlatform.path, platform],
+    queryFn: async () => {
+      const url = buildUrl(api.telephony.byPlatform.path, { platform: encodeURIComponent(platform) });
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch telephony by platform");
+      return api.telephony.byPlatform.responses[200].parse(await res.json());
+    },
+    enabled: !!platform,
+  });
+}
+
 export function useAddTelephony() {
   const queryClient = useQueryClient();
   return useMutation({

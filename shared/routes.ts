@@ -132,6 +132,13 @@ export const api = {
     }
   },
   telephony: {
+    byPlatform: {
+      method: 'GET' as const,
+      path: '/api/telephony/platform/:platform',
+      responses: {
+        200: z.array(z.custom<typeof siteTelephony.$inferSelect & { site: typeof sites.$inferSelect }>()),
+      }
+    },
     create: {
       method: 'POST' as const,
       path: '/api/sites/:siteId/telephony',
