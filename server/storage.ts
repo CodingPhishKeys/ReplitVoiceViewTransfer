@@ -64,16 +64,18 @@ export class DatabaseStorage implements IStorage {
     const site = await this.getSite(id);
     if (!site) return undefined;
 
-    const info = await db.select().from(siteInfo).where(eq(siteInfo.siteId, id));
-    const [connectivity] = await db.select().from(siteConnectivity).where(eq(siteConnectivity.siteId, id));
-    const services = await db.select().from(siteServices).where(eq(siteServices.siteId, id));
-    const telephony = await db.select().from(siteTelephony).where(eq(siteTelephony.siteId, id));
-    const diagrams = await db.select().from(siteDiagrams).where(eq(siteDiagrams.siteId, id));
+    const [info, connectivityRows, services, telephony, diagrams] = await Promise.all([
+      db.select().from(siteInfo).where(eq(siteInfo.siteId, id)),
+      db.select().from(siteConnectivity).where(eq(siteConnectivity.siteId, id)),
+      db.select().from(siteServices).where(eq(siteServices.siteId, id)),
+      db.select().from(siteTelephony).where(eq(siteTelephony.siteId, id)),
+      db.select().from(siteDiagrams).where(eq(siteDiagrams.siteId, id)),
+    ]);
 
     return {
       ...site,
       info,
-      connectivity: connectivity || null,
+      connectivity: connectivityRows[0] || null,
       services,
       telephony,
       diagrams
@@ -91,12 +93,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSite(id: number): Promise<void> {
-    // Cascade delete all related records
-    await db.delete(siteInfo).where(eq(siteInfo.siteId, id));
-    await db.delete(siteConnectivity).where(eq(siteConnectivity.siteId, id));
-    await db.delete(siteServices).where(eq(siteServices.siteId, id));
-    await db.delete(siteTelephony).where(eq(siteTelephony.siteId, id));
-    await db.delete(siteDiagrams).where(eq(siteDiagrams.siteId, id));
+    await Promise.all([
+      db.delete(siteInfo).where(eq(siteInfo.siteId, id)),
+      db.delete(siteConnectivity).where(eq(siteConnectivity.siteId, id)),
+      db.delete(siteServices).where(eq(siteServices.siteId, id)),
+      db.delete(siteTelephony).where(eq(siteTelephony.siteId, id)),
+      db.delete(siteDiagrams).where(eq(siteDiagrams.siteId, id)),
+    ]);
     await db.delete(sites).where(eq(sites.id, id));
   }
 

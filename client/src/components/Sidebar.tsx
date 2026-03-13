@@ -1,13 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { 
-  Building2, 
   MapPin, 
   Activity, 
   Plus, 
   ChevronDown,
   ChevronRight,
-  Server,
   LayoutDashboard,
   Phone
 } from "lucide-react";
@@ -17,14 +15,13 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSiteSchema, regions, telephonySystems } from "@shared/schema";
@@ -187,7 +184,6 @@ function CreateSiteDialog() {
       name: "",
       code: "",
       region: "North",
-      description: ""
     }
   });
 
