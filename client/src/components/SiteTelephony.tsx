@@ -62,24 +62,18 @@ export function SiteTelephony({ siteId, telephony }: { siteId: number, telephony
               {/* Details Grid */}
               <CardContent className="pt-5 pb-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-                  {sys.voiceServiceProvider && (
-                    <div className="bg-muted/40 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Voice Service Provider</p>
-                      <p className="text-sm font-medium">{sys.voiceServiceProvider}</p>
-                    </div>
-                  )}
-                  {sys.typeOfRouting && (
-                    <div className="bg-muted/40 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Type of Routing</p>
-                      <p className="text-sm font-medium">{sys.typeOfRouting}</p>
-                    </div>
-                  )}
-                  {sys.blockSize && (
-                    <div className="bg-muted/40 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Block Size</p>
-                      <p className="text-sm font-medium">{sys.blockSize}</p>
-                    </div>
-                  )}
+                  <div className="bg-muted/40 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Voice Service Provider</p>
+                    <p className="text-sm font-medium">{sys.voiceServiceProvider || <span className="text-muted-foreground italic">Not specified</span>}</p>
+                  </div>
+                  <div className="bg-muted/40 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Type of Routing</p>
+                    <p className="text-sm font-medium">{sys.typeOfRouting || <span className="text-muted-foreground italic">Not specified</span>}</p>
+                  </div>
+                  <div className="bg-muted/40 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Block Size</p>
+                    <p className="text-sm font-medium">{sys.blockSize || <span className="text-muted-foreground italic">Not specified</span>}</p>
+                  </div>
                 </div>
 
                 {/* Number Ranges Table */}
