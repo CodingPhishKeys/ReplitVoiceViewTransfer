@@ -24,6 +24,22 @@ export async function registerRoutes(
     res.json(site);
   });
 
+  app.put(api.sites.update.path, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const site = await storage.getSite(id);
+      if (!site) return res.status(404).json({ message: "Site not found" });
+      const input = api.sites.update.input.parse(req.body);
+      const updated = await storage.updateSite(id, input);
+      res.json(updated);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
   app.delete(api.sites.delete.path, async (req, res) => {
     const id = Number(req.params.id);
     const site = await storage.getSite(id);

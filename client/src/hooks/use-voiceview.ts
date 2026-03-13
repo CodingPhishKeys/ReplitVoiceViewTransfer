@@ -36,6 +36,25 @@ export function useSite(id: number) {
   });
 }
 
+export function useUpdateSite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: InsertSite & { id: number }) => {
+      const res = await fetch(buildUrl(api.sites.update.path, { id }), {
+        method: api.sites.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update site");
+      return api.sites.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, updated.id] });
+    },
+  });
+}
+
 export function useDeleteSite() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -45,8 +64,12 @@ export function useDeleteSite() {
       });
       if (!res.ok) throw new Error("Failed to delete site");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.sites.list.path] });
+    onSuccess: (_, id) => {
+      // Immediately remove site from the list cache so sidebar updates instantly
+      queryClient.setQueryData([api.sites.list.path], (old: any[]) =>
+        old ? old.filter((s) => s.id !== id) : []
+      );
+      queryClient.removeQueries({ queryKey: [api.sites.get.path, id] });
     },
   });
 }
