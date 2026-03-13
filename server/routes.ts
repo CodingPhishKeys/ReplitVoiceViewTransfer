@@ -67,6 +67,19 @@ export async function registerRoutes(
     }
   });
 
+  app.put(api.services.update.path, async (req, res) => {
+    try {
+      const input = api.services.update.input.parse(req.body);
+      const service = await storage.updateService(Number(req.params.id), input);
+      res.json(service);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
   app.delete(api.services.delete.path, async (req, res) => {
     await storage.deleteService(Number(req.params.id));
     res.status(204).send();
@@ -87,6 +100,24 @@ export async function registerRoutes(
     }
   });
 
+  app.put(api.telephony.update.path, async (req, res) => {
+    try {
+      const input = api.telephony.update.input.parse(req.body);
+      const telephony = await storage.updateTelephony(Number(req.params.id), input);
+      res.json(telephony);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.delete(api.telephony.delete.path, async (req, res) => {
+    await storage.deleteTelephony(Number(req.params.id));
+    res.status(204).send();
+  });
+
   // === Diagrams ===
   app.post(api.diagrams.create.path, async (req, res) => {
     try {
@@ -102,6 +133,24 @@ export async function registerRoutes(
     }
   });
 
+  app.put(api.diagrams.update.path, async (req, res) => {
+    try {
+      const input = api.diagrams.update.input.parse(req.body);
+      const diagram = await storage.updateDiagram(Number(req.params.id), input);
+      res.json(diagram);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.delete(api.diagrams.delete.path, async (req, res) => {
+    await storage.deleteDiagram(Number(req.params.id));
+    res.status(204).send();
+  });
+
   // === Info ===
   app.post(api.info.create.path, async (req, res) => {
     try {
@@ -109,6 +158,19 @@ export async function registerRoutes(
       const siteId = Number(req.params.siteId);
       const info = await storage.createSiteInfo({ ...input, siteId });
       res.status(201).json(info);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.put(api.info.update.path, async (req, res) => {
+    try {
+      const input = api.info.update.input.parse(req.body);
+      const info = await storage.updateSiteInfo(Number(req.params.id), input);
+      res.json(info);
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });

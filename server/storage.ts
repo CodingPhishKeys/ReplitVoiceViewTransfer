@@ -25,6 +25,7 @@ export interface IStorage {
 
   // Info
   createSiteInfo(info: InsertSiteInfo): Promise<SiteInfo>;
+  updateSiteInfo(id: number, data: Omit<InsertSiteInfo, "siteId">): Promise<SiteInfo>;
   deleteSiteInfo(id: number): Promise<void>;
 
   // Connectivity
@@ -32,13 +33,18 @@ export interface IStorage {
   
   // Services
   createService(service: InsertService): Promise<SiteService>;
+  updateService(id: number, data: Omit<InsertService, "siteId">): Promise<SiteService>;
   deleteService(id: number): Promise<void>;
 
   // Telephony
   createTelephony(telephony: InsertTelephony): Promise<SiteTelephony>;
+  updateTelephony(id: number, data: Omit<InsertTelephony, "siteId">): Promise<SiteTelephony>;
+  deleteTelephony(id: number): Promise<void>;
 
   // Diagrams
   createDiagram(diagram: InsertDiagram): Promise<SiteDiagram>;
+  updateDiagram(id: number, data: Omit<InsertDiagram, "siteId">): Promise<SiteDiagram>;
+  deleteDiagram(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -81,6 +87,11 @@ export class DatabaseStorage implements IStorage {
     return newInfo;
   }
 
+  async updateSiteInfo(id: number, data: Omit<InsertSiteInfo, "siteId">): Promise<SiteInfo> {
+    const [updated] = await db.update(siteInfo).set(data).where(eq(siteInfo.id, id)).returning();
+    return updated;
+  }
+
   async deleteSiteInfo(id: number): Promise<void> {
     await db.delete(siteInfo).where(eq(siteInfo.id, id));
   }
@@ -107,6 +118,11 @@ export class DatabaseStorage implements IStorage {
     return newService;
   }
 
+  async updateService(id: number, data: Omit<InsertService, "siteId">): Promise<SiteService> {
+    const [updated] = await db.update(siteServices).set(data).where(eq(siteServices.id, id)).returning();
+    return updated;
+  }
+
   async deleteService(id: number): Promise<void> {
     await db.delete(siteServices).where(eq(siteServices.id, id));
   }
@@ -116,9 +132,27 @@ export class DatabaseStorage implements IStorage {
     return newTelephony;
   }
 
+  async updateTelephony(id: number, data: Omit<InsertTelephony, "siteId">): Promise<SiteTelephony> {
+    const [updated] = await db.update(siteTelephony).set(data).where(eq(siteTelephony.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTelephony(id: number): Promise<void> {
+    await db.delete(siteTelephony).where(eq(siteTelephony.id, id));
+  }
+
   async createDiagram(diagram: InsertDiagram): Promise<SiteDiagram> {
     const [newDiagram] = await db.insert(siteDiagrams).values(diagram).returning();
     return newDiagram;
+  }
+
+  async updateDiagram(id: number, data: Omit<InsertDiagram, "siteId">): Promise<SiteDiagram> {
+    const [updated] = await db.update(siteDiagrams).set(data).where(eq(siteDiagrams.id, id)).returning();
+    return updated;
+  }
+
+  async deleteDiagram(id: number): Promise<void> {
+    await db.delete(siteDiagrams).where(eq(siteDiagrams.id, id));
   }
 }
 

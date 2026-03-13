@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, MapPin, Hash, Info, Plus, User, Users, FileText, Phone, Trash2 } from "lucide-react";
+import { Globe, MapPin, Hash, Info, Plus, User, Users, FileText, Phone, Trash2, Pencil } from "lucide-react";
 import type { Site, SiteInfo } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSiteInfoSchema } from "@shared/schema";
-import { useAddSiteInfo, useDeleteSiteInfo } from "@/hooks/use-voiceview";
+import { useAddSiteInfo, useUpdateSiteInfo, useDeleteSiteInfo } from "@/hooks/use-voiceview";
 import type { z } from "zod";
 
 type SiteWithDetails = Site & { info: SiteInfo[] };
@@ -26,7 +26,6 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {/* Main Info Card */}
       <Card className="col-span-2 border-l-4 border-l-primary shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -88,14 +87,18 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
                         </div>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => deleteInfo.mutate(info.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <EditInfoDialog info={info} siteId={site.id} />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => deleteInfo.mutate(info.id)}
+                        disabled={deleteInfo.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -129,7 +132,6 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
         </CardContent>
       </Card>
 
-      {/* Quick Stats / Status Placeholder */}
       <Card className="shadow-sm h-fit">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
@@ -163,22 +165,12 @@ function AddInfoDialog({ siteId }: { siteId: number }) {
   
   const form = useForm<z.infer<typeof insertSiteInfoSchema>>({
     resolver: zodResolver(insertSiteInfoSchema),
-    defaultValues: {
-      siteId,
-      address: "",
-      mainNumber: "",
-      itManager: "",
-      numberOfUsers: "",
-      otherInfo: ""
-    }
+    defaultValues: { siteId, address: "", mainNumber: "", itManager: "", numberOfUsers: "", otherInfo: "" }
   });
 
   const onSubmit = (data: z.infer<typeof insertSiteInfoSchema>) => {
     addInfo.mutate({ ...data, siteId }, {
-      onSuccess: () => {
-        setOpen(false);
-        form.reset();
-      }
+      onSuccess: () => { setOpen(false); form.reset(); }
     });
   };
 
@@ -190,100 +182,82 @@ function AddInfoDialog({ siteId }: { siteId: number }) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add Site Information</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="123 Corporate Way..." {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="mainNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Main Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+44 20..." {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="itManager"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>IT Manager</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Name..." {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="numberOfUsers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Users</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 250" {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="otherInfo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Other Info</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Access hours, local quirks..." {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={addInfo.isPending}>
-              {addInfo.isPending ? "Adding..." : "Add Information"}
-            </Button>
-          </form>
-        </Form>
+        <DialogHeader><DialogTitle>Add Site Information</DialogTitle></DialogHeader>
+        <SiteInfoForm form={form} onSubmit={onSubmit} isPending={addInfo.isPending} submitLabel="Add Information" />
       </DialogContent>
     </Dialog>
   );
 }
 
+function EditInfoDialog({ info, siteId }: { info: SiteInfo; siteId: number }) {
+  const [open, setOpen] = useState(false);
+  const updateInfo = useUpdateSiteInfo();
+
+  const form = useForm<z.infer<typeof insertSiteInfoSchema>>({
+    resolver: zodResolver(insertSiteInfoSchema),
+    defaultValues: {
+      siteId,
+      address: info.address || "",
+      mainNumber: info.mainNumber || "",
+      itManager: info.itManager || "",
+      numberOfUsers: info.numberOfUsers || "",
+      otherInfo: info.otherInfo || ""
+    }
+  });
+
+  const onSubmit = (data: z.infer<typeof insertSiteInfoSchema>) => {
+    updateInfo.mutate({ id: info.id, siteId, ...data }, {
+      onSuccess: () => setOpen(false)
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Pencil className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader><DialogTitle>Edit Site Information</DialogTitle></DialogHeader>
+        <SiteInfoForm form={form} onSubmit={onSubmit} isPending={updateInfo.isPending} submitLabel="Save Changes" />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SiteInfoForm({ form, onSubmit, isPending, submitLabel }: { form: any; onSubmit: any; isPending: boolean; submitLabel: string }) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+        <FormField control={form.control} name="address" render={({ field }) => (
+          <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="123 Corporate Way..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField control={form.control} name="mainNumber" render={({ field }) => (
+            <FormItem><FormLabel>Main Number</FormLabel><FormControl><Input placeholder="+44 20..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+          )} />
+          <FormField control={form.control} name="itManager" render={({ field }) => (
+            <FormItem><FormLabel>IT Manager</FormLabel><FormControl><Input placeholder="Name..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+          )} />
+        </div>
+        <FormField control={form.control} name="numberOfUsers" render={({ field }) => (
+          <FormItem><FormLabel>Number of Users</FormLabel><FormControl><Input placeholder="e.g. 250" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={form.control} name="otherInfo" render={({ field }) => (
+          <FormItem><FormLabel>Other Info</FormLabel><FormControl><Input placeholder="Access hours, local quirks..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Saving..." : submitLabel}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
 function ActivityIcon() {
   return (
-    <svg
-      className=" h-5 w-5 text-green-500"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
     </svg>
   );

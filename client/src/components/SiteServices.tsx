@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, ServerCog, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Pencil, ServerCog, CheckCircle2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertServiceSchema, type SiteService } from "@shared/schema";
-import { useAddService, useDeleteService } from "@/hooks/use-voiceview";
+import { useAddService, useUpdateService, useDeleteService } from "@/hooks/use-voiceview";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -40,9 +40,7 @@ export function SiteServices({ siteId, services }: { siteId: number, services: S
           {services.map((service) => (
             <Card key={service.id} className="group hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-base font-medium">
-                  {service.serviceType}
-                </CardTitle>
+                <CardTitle className="text-base font-medium">{service.serviceType}</CardTitle>
                 {service.status === 'Active' ? (
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                 ) : (
@@ -55,21 +53,24 @@ export function SiteServices({ siteId, services }: { siteId: number, services: S
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    service.status === 'Active' 
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                    service.status === 'Active'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                       : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                   }`}>
                     {service.status}
                   </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all"
-                    onClick={() => deleteService.mutate(service.id)}
-                    disabled={deleteService.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <EditServiceDialog service={service} siteId={siteId} />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => deleteService.mutate(service.id)}
+                      disabled={deleteService.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -80,93 +81,103 @@ export function SiteServices({ siteId, services }: { siteId: number, services: S
   );
 }
 
+function ServiceForm({ form, onSubmit, isPending, submitLabel }: { form: any; onSubmit: any; isPending: boolean; submitLabel: string }) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+        <FormField control={form.control} name="serviceType" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Service Type</FormLabel>
+            <FormControl><Input placeholder="e.g. Switchboard, Recording" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="status" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Status</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value || 'Active'}>
+              <FormControl>
+                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Maintenance">Maintenance</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="details" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Details</FormLabel>
+            <FormControl><Input placeholder="Version, specifics, etc." {...field} value={field.value || ''} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Saving..." : submitLabel}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
 function AddServiceDialog({ siteId }: { siteId: number }) {
   const [open, setOpen] = useState(false);
   const addService = useAddService();
   const form = useForm<z.infer<typeof insertServiceSchema>>({
     resolver: zodResolver(insertServiceSchema.omit({ siteId: true })),
-    defaultValues: {
-      serviceType: "",
-      details: "",
-      status: "Active"
-    }
+    defaultValues: { serviceType: "", details: "", status: "Active" }
   });
 
   const onSubmit = (data: any) => {
     addService.mutate({ siteId, ...data }, {
-      onSuccess: () => {
-        setOpen(false);
-        form.reset();
-      }
+      onSuccess: () => { setOpen(false); form.reset(); }
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          <Plus className="h-4 w-4 mr-2" /> Add Service
+        <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-2" /> Add Service</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Add New Service</DialogTitle></DialogHeader>
+        <ServiceForm form={form} onSubmit={onSubmit} isPending={addService.isPending} submitLabel="Add Service" />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditServiceDialog({ service, siteId }: { service: SiteService; siteId: number }) {
+  const [open, setOpen] = useState(false);
+  const updateService = useUpdateService();
+  const form = useForm<z.infer<typeof insertServiceSchema>>({
+    resolver: zodResolver(insertServiceSchema.omit({ siteId: true })),
+    defaultValues: {
+      serviceType: service.serviceType,
+      details: service.details || "",
+      status: service.status || "Active"
+    }
+  });
+
+  const onSubmit = (data: any) => {
+    updateService.mutate({ id: service.id, siteId, ...data }, {
+      onSuccess: () => setOpen(false)
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+          <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add New Service</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <FormField
-              control={form.control}
-              name="serviceType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service Type</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Switchboard, Recording" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || 'Active'}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
-                      <SelectItem value="Maintenance">Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="details"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Details</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Version, Specifics, etc." {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={addService.isPending}>
-              {addService.isPending ? "Adding..." : "Add Service"}
-            </Button>
-          </form>
-        </Form>
+        <DialogHeader><DialogTitle>Edit Service</DialogTitle></DialogHeader>
+        <ServiceForm form={form} onSubmit={onSubmit} isPending={updateService.isPending} submitLabel="Save Changes" />
       </DialogContent>
     </Dialog>
   );

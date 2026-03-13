@@ -76,6 +76,15 @@ export const api = {
         404: errorSchemas.notFound,
       }
     },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/info/:id',
+      input: insertSiteInfoSchema.omit({ siteId: true }),
+      responses: {
+        200: z.custom<typeof siteInfo.$inferSelect>(),
+        404: errorSchemas.notFound,
+      }
+    },
     delete: {
       method: 'DELETE' as const,
       path: '/api/info/:id',
@@ -105,6 +114,15 @@ export const api = {
         404: errorSchemas.notFound,
       }
     },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/services/:id',
+      input: insertServiceSchema.omit({ siteId: true }),
+      responses: {
+        200: z.custom<typeof siteServices.$inferSelect>(),
+        404: errorSchemas.notFound,
+      }
+    },
     delete: {
       method: 'DELETE' as const,
       path: '/api/services/:id',
@@ -122,6 +140,22 @@ export const api = {
         201: z.custom<typeof siteTelephony.$inferSelect>(),
         404: errorSchemas.notFound,
       }
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/telephony/:id',
+      input: insertTelephonySchema.omit({ siteId: true }),
+      responses: {
+        200: z.custom<typeof siteTelephony.$inferSelect>(),
+        404: errorSchemas.notFound,
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/telephony/:id',
+      responses: {
+        204: z.void(),
+      }
     }
   },
   diagrams: {
@@ -132,6 +166,22 @@ export const api = {
       responses: {
         201: z.custom<typeof siteDiagrams.$inferSelect>(),
         404: errorSchemas.notFound,
+      }
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/diagrams/:id',
+      input: insertDiagramSchema.omit({ siteId: true }),
+      responses: {
+        200: z.custom<typeof siteDiagrams.$inferSelect>(),
+        404: errorSchemas.notFound,
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/diagrams/:id',
+      responses: {
+        204: z.void(),
       }
     }
   }

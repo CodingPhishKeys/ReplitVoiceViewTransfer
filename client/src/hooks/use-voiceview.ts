@@ -99,6 +99,25 @@ export function useAddService() {
   });
 }
 
+export function useUpdateService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, siteId, ...data }: Omit<InsertService, "siteId"> & { id: number; siteId: number }) => {
+      const url = buildUrl(api.services.update.path, { id });
+      const res = await fetch(url, {
+        method: api.services.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update service");
+      return api.services.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
 export function useDeleteService() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -108,7 +127,7 @@ export function useDeleteService() {
       if (!res.ok) throw new Error("Failed to delete service");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.sites.get.path] }); // Broad invalidation to be safe, or pass siteId
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path] });
     },
   });
 }
@@ -134,6 +153,39 @@ export function useAddTelephony() {
   });
 }
 
+export function useUpdateTelephony() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, siteId, ...data }: Omit<InsertTelephony, "siteId"> & { id: number; siteId: number }) => {
+      const url = buildUrl(api.telephony.update.path, { id });
+      const res = await fetch(url, {
+        method: api.telephony.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update telephony system");
+      return api.telephony.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
+export function useDeleteTelephony() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.telephony.delete.path, { id });
+      const res = await fetch(url, { method: api.telephony.delete.method });
+      if (!res.ok) throw new Error("Failed to delete telephony system");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path] });
+    },
+  });
+}
+
 // === Info ===
 
 export function useAddSiteInfo() {
@@ -155,6 +207,25 @@ export function useAddSiteInfo() {
   });
 }
 
+export function useUpdateSiteInfo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, siteId, ...data }: Omit<InsertSiteInfo, "siteId"> & { id: number; siteId: number }) => {
+      const url = buildUrl(api.info.update.path, { id });
+      const res = await fetch(url, {
+        method: api.info.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update site info");
+      return api.info.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
 export function useDeleteSiteInfo() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -168,6 +239,8 @@ export function useDeleteSiteInfo() {
     },
   });
 }
+
+// === Diagrams ===
 
 export function useAddDiagram() {
   const queryClient = useQueryClient();
@@ -184,6 +257,39 @@ export function useAddDiagram() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
+export function useUpdateDiagram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, siteId, ...data }: Omit<InsertDiagram, "siteId"> & { id: number; siteId: number }) => {
+      const url = buildUrl(api.diagrams.update.path, { id });
+      const res = await fetch(url, {
+        method: api.diagrams.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update diagram");
+      return api.diagrams.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
+export function useDeleteDiagram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.diagrams.delete.path, { id });
+      const res = await fetch(url, { method: api.diagrams.delete.method });
+      if (!res.ok) throw new Error("Failed to delete diagram");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path] });
     },
   });
 }
