@@ -24,6 +24,14 @@ export async function registerRoutes(
     res.json(site);
   });
 
+  app.delete(api.sites.delete.path, async (req, res) => {
+    const id = Number(req.params.id);
+    const site = await storage.getSite(id);
+    if (!site) return res.status(404).json({ message: "Site not found" });
+    await storage.deleteSite(id);
+    res.status(204).send();
+  });
+
   app.post(api.sites.create.path, async (req, res) => {
     try {
       const input = api.sites.create.input.parse(req.body);

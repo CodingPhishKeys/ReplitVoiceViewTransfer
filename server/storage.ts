@@ -22,6 +22,7 @@ export interface IStorage {
     diagrams: SiteDiagram[]
   } | undefined>;
   createSite(site: InsertSite): Promise<Site>;
+  deleteSite(id: number): Promise<void>;
 
   // Info
   createSiteInfo(info: InsertSiteInfo): Promise<SiteInfo>;
@@ -81,6 +82,16 @@ export class DatabaseStorage implements IStorage {
   async createSite(insertSite: InsertSite): Promise<Site> {
     const [site] = await db.insert(sites).values(insertSite).returning();
     return site;
+  }
+
+  async deleteSite(id: number): Promise<void> {
+    // Cascade delete all related records
+    await db.delete(siteInfo).where(eq(siteInfo.siteId, id));
+    await db.delete(siteConnectivity).where(eq(siteConnectivity.siteId, id));
+    await db.delete(siteServices).where(eq(siteServices.siteId, id));
+    await db.delete(siteTelephony).where(eq(siteTelephony.siteId, id));
+    await db.delete(siteDiagrams).where(eq(siteDiagrams.siteId, id));
+    await db.delete(sites).where(eq(sites.id, id));
   }
 
   async createSiteInfo(info: InsertSiteInfo): Promise<SiteInfo> {

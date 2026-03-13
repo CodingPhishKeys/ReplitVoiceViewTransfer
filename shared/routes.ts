@@ -64,6 +64,14 @@ export const api = {
         201: z.custom<typeof sites.$inferSelect>(),
         400: errorSchemas.validation,
       },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/sites/:id',
+      responses: {
+        204: z.void(),
+        404: errorSchemas.notFound,
+      },
     }
   },
   info: {

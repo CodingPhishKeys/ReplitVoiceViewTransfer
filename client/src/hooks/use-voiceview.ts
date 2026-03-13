@@ -36,6 +36,21 @@ export function useSite(id: number) {
   });
 }
 
+export function useDeleteSite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(buildUrl(api.sites.delete.path, { id }), {
+        method: api.sites.delete.method,
+      });
+      if (!res.ok) throw new Error("Failed to delete site");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.list.path] });
+    },
+  });
+}
+
 export function useCreateSite() {
   const queryClient = useQueryClient();
   return useMutation({
