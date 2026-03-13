@@ -46,9 +46,19 @@ export function useUpdateSite() {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to update site");
-      return api.sites.update.responses[200].parse(await res.json());
+      const json = await res.json();
+      return { id, ...json } as { id: number; name: string; region: string; code: string };
     },
     onSuccess: (updated) => {
+      // Update the sites list cache immediately
+      queryClient.setQueryData([api.sites.list.path], (old: any[]) =>
+        old ? old.map((s) => (s.id === updated.id ? { ...s, ...updated } : s)) : old
+      );
+      // Update the full site detail cache immediately
+      queryClient.setQueryData([api.sites.get.path, updated.id], (old: any) =>
+        old ? { ...old, ...updated } : old
+      );
+      // Also trigger background refetch to ensure fresh data
       queryClient.invalidateQueries({ queryKey: [api.sites.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.sites.get.path, updated.id] });
     },

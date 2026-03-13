@@ -25,6 +25,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSiteSchema, regions, type Site } from "@shared/schema";
 import type { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SiteDetail() {
   const [, params] = useRoute("/sites/:id");
@@ -151,6 +152,7 @@ export default function SiteDetail() {
 
 function EditSiteDialog({ site, open, onOpenChange }: { site: Site; open: boolean; onOpenChange: (v: boolean) => void }) {
   const updateSite = useUpdateSite();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof insertSiteSchema>>({
     resolver: zodResolver(insertSiteSchema),
     values: {
@@ -162,7 +164,13 @@ function EditSiteDialog({ site, open, onOpenChange }: { site: Site; open: boolea
 
   const onSubmit = (data: z.infer<typeof insertSiteSchema>) => {
     updateSite.mutate({ id: site.id, ...data }, {
-      onSuccess: () => onOpenChange(false)
+      onSuccess: () => {
+        onOpenChange(false);
+        toast({ title: "Site updated", description: "Changes have been saved." });
+      },
+      onError: () => {
+        toast({ title: "Failed to save", description: "Something went wrong. Please try again.", variant: "destructive" });
+      }
     });
   };
 
