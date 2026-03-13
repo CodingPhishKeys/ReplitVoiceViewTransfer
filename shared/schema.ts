@@ -47,7 +47,10 @@ export const siteTelephony = pgTable("site_telephony", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id").references(() => sites.id).notNull(),
   platform: text("platform", { enum: telephonySystems }).notNull(),
-  numberRanges: text("number_ranges").array().notNull(), // ["+44 123...", "+44 456..."]
+  numberRanges: text("number_ranges").array().notNull(),
+  blockSize: text("block_size"),
+  voiceServiceProvider: text("voice_service_provider"),
+  typeOfRouting: text("type_of_routing"),
 });
 
 export const siteDiagrams = pgTable("site_diagrams", {
