@@ -1,18 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, MapPin, Hash, Info, Plus, User, Users, FileText, Phone, Trash2, Pencil } from "lucide-react";
+import { Globe, MapPin, Hash, Info, Plus, User, Users, FileText, Phone, Trash2, Pencil, Clock } from "lucide-react";
 import type { Site, SiteInfo } from "@shared/schema";
+import { timeSlots } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSiteInfoSchema } from "@shared/schema";
@@ -43,7 +46,7 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {info.address && (
                         <div className="flex items-start gap-3">
-                          <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                          <MapPin className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">Address</p>
                             <p className="text-sm">{info.address}</p>
@@ -52,7 +55,7 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
                       )}
                       {info.mainNumber && (
                         <div className="flex items-start gap-3">
-                          <Phone className="h-4 w-4 text-muted-foreground mt-1" />
+                          <Phone className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">Main Number</p>
                             <p className="text-sm">{info.mainNumber}</p>
@@ -61,7 +64,7 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
                       )}
                       {info.itManager && (
                         <div className="flex items-start gap-3">
-                          <User className="h-4 w-4 text-muted-foreground mt-1" />
+                          <User className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">IT Manager</p>
                             <p className="text-sm">{info.itManager}</p>
@@ -70,16 +73,31 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
                       )}
                       {info.numberOfUsers && (
                         <div className="flex items-start gap-3">
-                          <Users className="h-4 w-4 text-muted-foreground mt-1" />
+                          <Users className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">Number of Users</p>
                             <p className="text-sm">{info.numberOfUsers}</p>
                           </div>
                         </div>
                       )}
+                      {(info.openingTime || info.closingTime) && (
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase">Operating Hours</p>
+                            <p className="text-sm">
+                              {info.openingTime && info.closingTime
+                                ? `${info.openingTime} – ${info.closingTime}`
+                                : info.openingTime
+                                  ? `Opens ${info.openingTime}`
+                                  : `Closes ${info.closingTime}`}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                       {info.otherInfo && (
                         <div className="flex items-start gap-3 col-span-full">
-                          <FileText className="h-4 w-4 text-muted-foreground mt-1" />
+                          <FileText className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">Other Info</p>
                             <p className="text-sm whitespace-pre-wrap">{info.otherInfo}</p>
@@ -159,13 +177,104 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
   );
 }
 
+function SiteInfoForm({ form, onSubmit, isPending, submitLabel }: {
+  form: any;
+  onSubmit: any;
+  isPending: boolean;
+  submitLabel: string;
+}) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+        <FormField control={form.control} name="address" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Address</FormLabel>
+            <FormControl><Input placeholder="123 Corporate Way..." {...field} value={field.value || ''} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField control={form.control} name="mainNumber" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Main Number</FormLabel>
+              <FormControl><Input placeholder="+44 20..." {...field} value={field.value || ''} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="itManager" render={({ field }) => (
+            <FormItem>
+              <FormLabel>IT Manager</FormLabel>
+              <FormControl><Input placeholder="Name..." {...field} value={field.value || ''} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+        <FormField control={form.control} name="numberOfUsers" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Number of Users</FormLabel>
+            <FormControl><Input placeholder="e.g. 250" {...field} value={field.value || ''} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        {/* Opening / Closing Times */}
+        <div className="grid grid-cols-2 gap-4">
+          <FormField control={form.control} name="openingTime" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Opening Time</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value || ""}>
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder="Select time" /></SelectTrigger>
+                </FormControl>
+                <SelectContent className="max-h-60">
+                  {timeSlots.map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="closingTime" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Closing Time</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value || ""}>
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder="Select time" /></SelectTrigger>
+                </FormControl>
+                <SelectContent className="max-h-60">
+                  {timeSlots.map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+
+        <FormField control={form.control} name="otherInfo" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Other Info</FormLabel>
+            <FormControl><Input placeholder="Access hours, local quirks..." {...field} value={field.value || ''} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Saving..." : submitLabel}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
 function AddInfoDialog({ siteId }: { siteId: number }) {
   const [open, setOpen] = useState(false);
   const addInfo = useAddSiteInfo();
-  
+
   const form = useForm<z.infer<typeof insertSiteInfoSchema>>({
     resolver: zodResolver(insertSiteInfoSchema),
-    defaultValues: { siteId, address: "", mainNumber: "", itManager: "", numberOfUsers: "", otherInfo: "" }
+    defaultValues: { siteId, address: "", mainNumber: "", itManager: "", numberOfUsers: "", openingTime: "", closingTime: "", otherInfo: "" }
   });
 
   const onSubmit = (data: z.infer<typeof insertSiteInfoSchema>) => {
@@ -181,8 +290,11 @@ function AddInfoDialog({ siteId }: { siteId: number }) {
           <Plus className="h-4 w-4" /> Add Info
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader><DialogTitle>Add Site Information</DialogTitle></DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add Site Information</DialogTitle>
+          <DialogDescription>Add general details and operating hours for this site.</DialogDescription>
+        </DialogHeader>
         <SiteInfoForm form={form} onSubmit={onSubmit} isPending={addInfo.isPending} submitLabel="Add Information" />
       </DialogContent>
     </Dialog>
@@ -201,6 +313,8 @@ function EditInfoDialog({ info, siteId }: { info: SiteInfo; siteId: number }) {
       mainNumber: info.mainNumber || "",
       itManager: info.itManager || "",
       numberOfUsers: info.numberOfUsers || "",
+      openingTime: info.openingTime || "",
+      closingTime: info.closingTime || "",
       otherInfo: info.otherInfo || ""
     }
   });
@@ -218,40 +332,14 @@ function EditInfoDialog({ info, siteId }: { info: SiteInfo; siteId: number }) {
           <Pencil className="h-4 w-4 text-muted-foreground" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader><DialogTitle>Edit Site Information</DialogTitle></DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Site Information</DialogTitle>
+          <DialogDescription>Update the details and operating hours for this site.</DialogDescription>
+        </DialogHeader>
         <SiteInfoForm form={form} onSubmit={onSubmit} isPending={updateInfo.isPending} submitLabel="Save Changes" />
       </DialogContent>
     </Dialog>
-  );
-}
-
-function SiteInfoForm({ form, onSubmit, isPending, submitLabel }: { form: any; onSubmit: any; isPending: boolean; submitLabel: string }) {
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-        <FormField control={form.control} name="address" render={({ field }) => (
-          <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="123 Corporate Way..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField control={form.control} name="mainNumber" render={({ field }) => (
-            <FormItem><FormLabel>Main Number</FormLabel><FormControl><Input placeholder="+44 20..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-          )} />
-          <FormField control={form.control} name="itManager" render={({ field }) => (
-            <FormItem><FormLabel>IT Manager</FormLabel><FormControl><Input placeholder="Name..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-          )} />
-        </div>
-        <FormField control={form.control} name="numberOfUsers" render={({ field }) => (
-          <FormItem><FormLabel>Number of Users</FormLabel><FormControl><Input placeholder="e.g. 250" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <FormField control={form.control} name="otherInfo" render={({ field }) => (
-          <FormItem><FormLabel>Other Info</FormLabel><FormControl><Input placeholder="Access hours, local quirks..." {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? "Saving..." : submitLabel}
-        </Button>
-      </form>
-    </Form>
   );
 }
 

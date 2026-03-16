@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -7,13 +7,28 @@ import { relations } from "drizzle-orm";
 export const regions = ["North", "South", "East", "West"] as const;
 export const telephonySystems = ["Microsoft Teams", "Avaya", "Cisco", "CX One", "IP Trade", "eFax", "Other"] as const;
 
+// Opening/closing time options (30-min increments)
+export const timeSlots = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2).toString().padStart(2, "0");
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${h}:${m}`;
+});
+
+// Contact entry used in connectivity
+export const contactEntrySchema = z.object({
+  name: z.string().default(""),
+  email: z.string().default(""),
+  phone: z.string().default(""),
+});
+export type ContactEntry = z.infer<typeof contactEntrySchema>;
+
 // === Tables ===
 
 export const sites = pgTable("sites", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   region: text("region", { enum: regions }).notNull(),
-  code: text("code"), // e.g. "LON"
+  code: text("code"),
 });
 
 export const siteInfo = pgTable("site_info", {
@@ -23,22 +38,24 @@ export const siteInfo = pgTable("site_info", {
   mainNumber: text("main_number"),
   itManager: text("it_manager"),
   numberOfUsers: text("number_of_users"),
+  openingTime: text("opening_time"),
+  closingTime: text("closing_time"),
   otherInfo: text("other_info"),
 });
 
 export const siteConnectivity = pgTable("site_connectivity", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id").references(() => sites.id).notNull(),
-  linkType: text("link_type").notNull(), // e.g., "Fiber", "MPLS"
+  linkType: text("link_type").notNull(),
   ispName: text("isp_name").notNull(),
-  ispContact: text("isp_contact").notNull(), // JSON or text details
-  localItContact: text("local_it_contact").notNull(),
+  ispContacts: jsonb("isp_contacts").$type<ContactEntry[]>().default([]),
+  localItContacts: jsonb("local_it_contacts").$type<ContactEntry[]>().default([]),
 });
 
 export const siteServices = pgTable("site_services", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id").references(() => sites.id).notNull(),
-  serviceType: text("service_type").notNull(), // "Switchboard", "Recording", "TMS"
+  serviceType: text("service_type").notNull(),
   details: text("details"),
   status: text("status").default("Active"),
 });
@@ -59,6 +76,9 @@ export const siteDiagrams = pgTable("site_diagrams", {
   title: text("title").notNull(),
   url: text("url").notNull(),
   description: text("description"),
+  uploadedBy: text("uploaded_by"),
+  uploadedAt: text("uploaded_at"),
+  fileName: text("file_name"),
 });
 
 // === Relations ===
@@ -72,45 +92,36 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
 }));
 
 export const siteInfoRelations = relations(siteInfo, ({ one }) => ({
-  site: one(sites, {
-    fields: [siteInfo.siteId],
-    references: [sites.id],
-  }),
+  site: one(sites, { fields: [siteInfo.siteId], references: [sites.id] }),
 }));
 
 export const connectivityRelations = relations(siteConnectivity, ({ one }) => ({
-  site: one(sites, {
-    fields: [siteConnectivity.siteId],
-    references: [sites.id],
-  }),
+  site: one(sites, { fields: [siteConnectivity.siteId], references: [sites.id] }),
 }));
 
 export const servicesRelations = relations(siteServices, ({ one }) => ({
-  site: one(sites, {
-    fields: [siteServices.siteId],
-    references: [sites.id],
-  }),
+  site: one(sites, { fields: [siteServices.siteId], references: [sites.id] }),
 }));
 
 export const telephonyRelations = relations(siteTelephony, ({ one }) => ({
-  site: one(sites, {
-    fields: [siteTelephony.siteId],
-    references: [sites.id],
-  }),
+  site: one(sites, { fields: [siteTelephony.siteId], references: [sites.id] }),
 }));
 
 export const diagramsRelations = relations(siteDiagrams, ({ one }) => ({
-  site: one(sites, {
-    fields: [siteDiagrams.siteId],
-    references: [sites.id],
-  }),
+  site: one(sites, { fields: [siteDiagrams.siteId], references: [sites.id] }),
 }));
 
 // === Schemas ===
 
 export const insertSiteSchema = createInsertSchema(sites).omit({ id: true });
 export const insertSiteInfoSchema = createInsertSchema(siteInfo).omit({ id: true });
-export const insertConnectivitySchema = createInsertSchema(siteConnectivity).omit({ id: true });
+
+// Override connectivity schema to properly type the jsonb contact arrays
+export const insertConnectivitySchema = createInsertSchema(siteConnectivity).omit({ id: true }).extend({
+  ispContacts: z.array(contactEntrySchema).optional().default([]),
+  localItContacts: z.array(contactEntrySchema).optional().default([]),
+});
+
 export const insertServiceSchema = createInsertSchema(siteServices).omit({ id: true });
 export const insertTelephonySchema = createInsertSchema(siteTelephony).omit({ id: true });
 export const insertDiagramSchema = createInsertSchema(siteDiagrams).omit({ id: true });

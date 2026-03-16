@@ -46,11 +46,12 @@ The `shared/` directory contains code used by both frontend and backend:
 - `routes.ts`: API contract definitions with Zod input/output schemas
 
 ### Key Data Models
-1. **Sites**: Core entity with name, region, description, and site code
-2. **Site Connectivity**: 1:1 relationship - link type, ISP details, contacts
-3. **Site Services**: 1:N relationship - service types with status tracking
-4. **Site Telephony**: 1:N relationship - telephony platforms with number ranges
-5. **Site Diagrams**: 1:N relationship - network diagram URLs with descriptions
+1. **Sites**: Core entity with name, region, and site code
+2. **Site Info**: 1:N relationship - address, main number, IT manager, user count, operating hours (opening/closing time dropdowns), other info
+3. **Site Connectivity**: 1:1 relationship - link type, ISP name, ISP contacts (multiple, each with name/email/phone), local IT contacts (multiple, each with name/email/phone)
+4. **Site Services**: 1:N relationship - service types with status tracking
+5. **Site Telephony**: 1:N relationship - telephony platforms with number ranges, block size, voice service provider, type of routing
+6. **Site Diagrams**: 1:N relationship - diagram image (upload from PC as base64 or external URL), title, description, uploaded by, uploaded at date, file name
 
 ## External Dependencies
 
