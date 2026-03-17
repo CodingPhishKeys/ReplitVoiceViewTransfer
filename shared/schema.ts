@@ -22,6 +22,13 @@ export const contactEntrySchema = z.object({
 });
 export type ContactEntry = z.infer<typeof contactEntrySchema>;
 
+// Number range entry used in telephony (start + end)
+export const numberRangeSchema = z.object({
+  start: z.string().default(""),
+  end: z.string().default(""),
+});
+export type NumberRange = z.infer<typeof numberRangeSchema>;
+
 // === Tables ===
 
 export const sites = pgTable("sites", {
@@ -64,7 +71,7 @@ export const siteTelephony = pgTable("site_telephony", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id").references(() => sites.id).notNull(),
   platform: text("platform", { enum: telephonySystems }).notNull(),
-  numberRanges: text("number_ranges").array().notNull(),
+  numberRanges: jsonb("number_ranges").$type<NumberRange[]>().default([]),
   blockSize: text("block_size"),
   voiceServiceProvider: text("voice_service_provider"),
   typeOfRouting: text("type_of_routing"),
@@ -116,14 +123,17 @@ export const diagramsRelations = relations(siteDiagrams, ({ one }) => ({
 export const insertSiteSchema = createInsertSchema(sites).omit({ id: true });
 export const insertSiteInfoSchema = createInsertSchema(siteInfo).omit({ id: true });
 
-// Override connectivity schema to properly type the jsonb contact arrays
 export const insertConnectivitySchema = createInsertSchema(siteConnectivity).omit({ id: true }).extend({
   ispContacts: z.array(contactEntrySchema).optional().default([]),
   localItContacts: z.array(contactEntrySchema).optional().default([]),
 });
 
 export const insertServiceSchema = createInsertSchema(siteServices).omit({ id: true });
-export const insertTelephonySchema = createInsertSchema(siteTelephony).omit({ id: true });
+
+export const insertTelephonySchema = createInsertSchema(siteTelephony).omit({ id: true }).extend({
+  numberRanges: z.array(numberRangeSchema).optional().default([]),
+});
+
 export const insertDiagramSchema = createInsertSchema(siteDiagrams).omit({ id: true });
 
 // === Types ===
