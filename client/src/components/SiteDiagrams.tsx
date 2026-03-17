@@ -19,6 +19,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+function openDiagram(url: string, title: string) {
+  if (url.startsWith("data:")) {
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+        <style>body{margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;}
+        img{max-width:100%;max-height:100vh;object-fit:contain;}</style></head>
+        <body><img src="${url}" alt="${title}" /></body></html>`);
+      win.document.close();
+    }
+  } else {
+    window.open(url, "_blank");
+  }
+}
+
 export function SiteDiagrams({ siteId, diagrams }: { siteId: number, diagrams: SiteDiagram[] }) {
   const deleteDiagram = useDeleteDiagram();
 
@@ -51,7 +66,7 @@ export function SiteDiagrams({ siteId, diagrams }: { siteId: number, diagrams: S
                   }}
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="secondary" className="gap-2" onClick={() => window.open(diagram.url, "_blank")}>
+                  <Button variant="secondary" className="gap-2" onClick={() => openDiagram(diagram.url, diagram.title)}>
                     <ExternalLink className="h-4 w-4" /> View Full
                   </Button>
                 </div>
