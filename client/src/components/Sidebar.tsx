@@ -33,10 +33,10 @@ export function Sidebar() {
   const [location] = useLocation();
   const { data: sites } = useSites();
   const [expandedRegions, setExpandedRegions] = useState<Record<string, boolean>>({
-    "North": true,
-    "South": true,
-    "East": true,
-    "West": true
+    "North": false,
+    "South": false,
+    "East": false,
+    "West": false
   });
   const [expandedTelephony, setExpandedTelephony] = useState(false);
 
