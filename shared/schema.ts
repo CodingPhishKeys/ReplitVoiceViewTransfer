@@ -15,6 +15,16 @@ export const timeSlots = Array.from({ length: 48 }, (_, i) => {
   return `${h}:${m}`;
 });
 
+// Operating days dropdown options
+export const operatingDaysOptions = [
+  "Monday - Friday",
+  "Monday - Saturday",
+  "Monday - Sunday",
+  "Tuesday - Saturday",
+  "Saturday - Sunday",
+  "7 Days",
+] as const;
+
 // Contact entry used in connectivity
 export const contactEntrySchema = z.object({
   name: z.string().default(""),

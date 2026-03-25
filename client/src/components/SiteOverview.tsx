@@ -18,7 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertSiteInfoSchema } from "@shared/schema";
+import { insertSiteInfoSchema, operatingDaysOptions } from "@shared/schema";
 import { useAddSiteInfo, useUpdateSiteInfo, useDeleteSiteInfo } from "@/hooks/use-voiceview";
 import type { z } from "zod";
 
@@ -226,7 +226,16 @@ function SiteInfoForm({ form, onSubmit, isPending, submitLabel }: {
         <FormField control={form.control} name="operatingDays" render={({ field }) => (
           <FormItem>
             <FormLabel>Operating Days</FormLabel>
-            <FormControl><Input placeholder="e.g. Monday - Friday" {...field} value={field.value || ''} /></FormControl>
+            <Select onValueChange={field.onChange} value={field.value || ""}>
+              <FormControl>
+                <SelectTrigger><SelectValue placeholder="Select days" /></SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {operatingDaysOptions.map(d => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )} />
