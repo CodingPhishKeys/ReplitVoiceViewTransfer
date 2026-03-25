@@ -6,7 +6,8 @@ import {
   type InsertService, 
   type InsertTelephony, 
   type InsertDiagram,
-  type InsertSiteInfo 
+  type InsertSiteInfo,
+  type InsertDocument,
 } from "@shared/schema";
 
 // === Sites ===
@@ -348,6 +349,60 @@ export function useDeleteDiagram() {
       const url = buildUrl(api.diagrams.delete.path, { id });
       const res = await fetch(url, { method: api.diagrams.delete.method });
       if (!res.ok) throw new Error("Failed to delete diagram");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path] });
+    },
+  });
+}
+
+// === Documents ===
+
+export function useAddDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ siteId, ...data }: InsertDocument & { siteId: number }) => {
+      const url = buildUrl(api.documents.create.path, { siteId });
+      const res = await fetch(url, {
+        method: api.documents.create.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to add document");
+      return api.documents.create.responses[201].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
+export function useUpdateDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, siteId, ...data }: Omit<InsertDocument, "siteId"> & { id: number; siteId: number }) => {
+      const url = buildUrl(api.documents.update.path, { id });
+      const res = await fetch(url, {
+        method: api.documents.update.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update document");
+      return api.documents.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sites.get.path, variables.siteId] });
+    },
+  });
+}
+
+export function useDeleteDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.documents.delete.path, { id });
+      const res = await fetch(url, { method: api.documents.delete.method });
+      if (!res.ok) throw new Error("Failed to delete document");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.sites.get.path] });

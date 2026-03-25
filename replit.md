@@ -52,6 +52,8 @@ The `shared/` directory contains code used by both frontend and backend:
 4. **Site Services**: 1:N relationship - service types with status tracking
 5. **Site Telephony**: 1:N relationship - telephony platforms with number ranges, block size, voice service provider, type of routing
 6. **Site Diagrams**: 1:N relationship - diagram image (upload from PC as base64 or external URL), title, description, uploaded by, uploaded at date, file name
+7. **Site Documents**: 1:N relationship - documentation links with title, description, URL, category (SOP/Runbook/Architecture/Policy/Guide/Reference/Other), added by, date added
+- **Site Info** also includes `operatingDays` (free-text, e.g. "Monday - Friday")
 
 ## External Dependencies
 

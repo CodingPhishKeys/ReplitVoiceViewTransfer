@@ -215,6 +215,35 @@ export async function registerRoutes(
   });
 
 
+  // === Documents ===
+  app.post(api.documents.create.path, async (req, res) => {
+    try {
+      const input = api.documents.create.input.parse(req.body);
+      const siteId = Number(req.params.siteId);
+      const doc = await storage.createDocument({ ...input, siteId });
+      res.status(201).json(doc);
+    } catch (err) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      throw err;
+    }
+  });
+
+  app.put(api.documents.update.path, async (req, res) => {
+    try {
+      const input = api.documents.update.input.parse(req.body);
+      const doc = await storage.updateDocument(Number(req.params.id), input);
+      res.json(doc);
+    } catch (err) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      throw err;
+    }
+  });
+
+  app.delete(api.documents.delete.path, async (req, res) => {
+    await storage.deleteDocument(Number(req.params.id));
+    res.status(204).send();
+  });
+
   // Seed Data
   await seedDatabase();
 

@@ -6,6 +6,7 @@ import { relations } from "drizzle-orm";
 // === Enums ===
 export const regions = ["North", "South", "East", "West"] as const;
 export const telephonySystems = ["Microsoft Teams", "Avaya", "Cisco", "CX One", "IP Trade", "eFax", "Other"] as const;
+export const documentCategories = ["SOP", "Runbook", "Architecture", "Policy", "Guide", "Reference", "Other"] as const;
 
 // Opening/closing time options (30-min increments)
 export const timeSlots = Array.from({ length: 48 }, (_, i) => {
@@ -47,6 +48,7 @@ export const siteInfo = pgTable("site_info", {
   numberOfUsers: text("number_of_users"),
   openingTime: text("opening_time"),
   closingTime: text("closing_time"),
+  operatingDays: text("operating_days"),
   otherInfo: text("other_info"),
 });
 
@@ -88,6 +90,17 @@ export const siteDiagrams = pgTable("site_diagrams", {
   fileName: text("file_name"),
 });
 
+export const siteDocuments = pgTable("site_documents", {
+  id: serial("id").primaryKey(),
+  siteId: integer("site_id").references(() => sites.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  url: text("url"),
+  category: text("category"),
+  addedBy: text("added_by"),
+  addedAt: text("added_at"),
+});
+
 // === Relations ===
 
 export const sitesRelations = relations(sites, ({ one, many }) => ({
@@ -96,6 +109,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   services: many(siteServices),
   telephony: many(siteTelephony),
   diagrams: many(siteDiagrams),
+  documents: many(siteDocuments),
 }));
 
 export const siteInfoRelations = relations(siteInfo, ({ one }) => ({
@@ -118,6 +132,10 @@ export const diagramsRelations = relations(siteDiagrams, ({ one }) => ({
   site: one(sites, { fields: [siteDiagrams.siteId], references: [sites.id] }),
 }));
 
+export const documentsRelations = relations(siteDocuments, ({ one }) => ({
+  site: one(sites, { fields: [siteDocuments.siteId], references: [sites.id] }),
+}));
+
 // === Schemas ===
 
 export const insertSiteSchema = createInsertSchema(sites).omit({ id: true });
@@ -135,6 +153,7 @@ export const insertTelephonySchema = createInsertSchema(siteTelephony).omit({ id
 });
 
 export const insertDiagramSchema = createInsertSchema(siteDiagrams).omit({ id: true });
+export const insertDocumentSchema = createInsertSchema(siteDocuments).omit({ id: true });
 
 // === Types ===
 
@@ -155,5 +174,8 @@ export type InsertTelephony = z.infer<typeof insertTelephonySchema>;
 
 export type SiteDiagram = typeof siteDiagrams.$inferSelect;
 export type InsertDiagram = z.infer<typeof insertDiagramSchema>;
+
+export type SiteDocument = typeof siteDocuments.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
 export type Region = typeof regions[number];

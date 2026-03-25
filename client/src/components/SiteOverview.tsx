@@ -80,17 +80,22 @@ export function SiteOverview({ site }: { site: SiteWithDetails }) {
                           </div>
                         </div>
                       )}
-                      {(info.openingTime || info.closingTime) && (
+                      {(info.operatingDays || info.openingTime || info.closingTime) && (
                         <div className="flex items-start gap-3">
                           <Clock className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">Operating Hours</p>
+                            {info.operatingDays && (
+                              <p className="text-sm font-medium">{info.operatingDays}</p>
+                            )}
                             <p className="text-sm">
                               {info.openingTime && info.closingTime
                                 ? `${info.openingTime} – ${info.closingTime}`
                                 : info.openingTime
                                   ? `Opens ${info.openingTime}`
-                                  : `Closes ${info.closingTime}`}
+                                  : info.closingTime
+                                    ? `Closes ${info.closingTime}`
+                                    : ""}
                             </p>
                           </div>
                         </div>
@@ -217,6 +222,15 @@ function SiteInfoForm({ form, onSubmit, isPending, submitLabel }: {
           </FormItem>
         )} />
 
+        {/* Operating Days */}
+        <FormField control={form.control} name="operatingDays" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Operating Days</FormLabel>
+            <FormControl><Input placeholder="e.g. Monday - Friday" {...field} value={field.value || ''} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
         {/* Opening / Closing Times */}
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name="openingTime" render={({ field }) => (
@@ -274,7 +288,7 @@ function AddInfoDialog({ siteId }: { siteId: number }) {
 
   const form = useForm<z.infer<typeof insertSiteInfoSchema>>({
     resolver: zodResolver(insertSiteInfoSchema),
-    defaultValues: { siteId, address: "", mainNumber: "", itManager: "", numberOfUsers: "", openingTime: "", closingTime: "", otherInfo: "" }
+    defaultValues: { siteId, address: "", mainNumber: "", itManager: "", numberOfUsers: "", operatingDays: "", openingTime: "", closingTime: "", otherInfo: "" }
   });
 
   const onSubmit = (data: z.infer<typeof insertSiteInfoSchema>) => {
@@ -313,6 +327,7 @@ function EditInfoDialog({ info, siteId }: { info: SiteInfo; siteId: number }) {
       mainNumber: info.mainNumber || "",
       itManager: info.itManager || "",
       numberOfUsers: info.numberOfUsers || "",
+      operatingDays: info.operatingDays || "",
       openingTime: info.openingTime || "",
       closingTime: info.closingTime || "",
       otherInfo: info.otherInfo || ""

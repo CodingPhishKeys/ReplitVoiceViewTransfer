@@ -7,6 +7,7 @@ import { SiteConnectivity } from "@/components/SiteConnectivity";
 import { SiteServices } from "@/components/SiteServices";
 import { SiteTelephony } from "@/components/SiteTelephony";
 import { SiteDiagrams } from "@/components/SiteDiagrams";
+import { SiteDocuments } from "@/components/SiteDocuments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export default function SiteDetail() {
   if (isLoading) return <SiteDetailSkeleton />;
   if (error || !data) return <div className="p-8 text-center text-red-500">Error loading site data</div>;
 
-  const { connectivity, services, telephony, diagrams, ...site } = data;
+  const { connectivity, services, telephony, diagrams, documents, ...site } = data;
 
   const handleDelete = () => {
     deleteSite.mutate(site.id, {
@@ -89,12 +90,13 @@ export default function SiteDetail() {
 
           {/* Content Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl">
+            <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl flex-wrap h-auto gap-1">
               <TabsTrigger value="overview" className="rounded-lg">Overview</TabsTrigger>
               <TabsTrigger value="services" className="rounded-lg">Services</TabsTrigger>
               <TabsTrigger value="connectivity" className="rounded-lg">Connectivity</TabsTrigger>
               <TabsTrigger value="telephony" className="rounded-lg">Telephony</TabsTrigger>
               <TabsTrigger value="diagrams" className="rounded-lg">Diagrams</TabsTrigger>
+              <TabsTrigger value="documents" className="rounded-lg">Documentation</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -111,6 +113,9 @@ export default function SiteDetail() {
             </TabsContent>
             <TabsContent value="diagrams" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
               <SiteDiagrams siteId={site.id} diagrams={diagrams} />
+            </TabsContent>
+            <TabsContent value="documents" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <SiteDocuments siteId={site.id} documents={documents ?? []} />
             </TabsContent>
           </Tabs>
         </div>
