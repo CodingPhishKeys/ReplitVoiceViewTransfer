@@ -6,7 +6,7 @@ import { relations } from "drizzle-orm";
 // === Enums ===
 export const regions = ["North", "South", "East", "West"] as const;
 export const phoneNumberStatuses = ["Active", "Inactive", "Reserved", "Ported Out"] as const;
-export const telephonySystems = ["Microsoft Teams", "Avaya", "Cisco", "CX One", "IP Trade", "eFax", "Other"] as const;
+export const telephonySystems = ["Microsoft Teams", "Cisco Phone", "Cisco IP Trade", "Cisco WebEx", "Nice CxOne"] as const;
 export const documentCategories = ["SOP", "Runbook", "Architecture", "Policy", "Guide", "Reference", "Other"] as const;
 
 // Opening/closing time options (30-min increments)

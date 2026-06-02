@@ -1,9 +1,9 @@
 number,platform,site_code,description,status
 +44 20 7946 0001,Microsoft Teams,LON,Reception Line,Active
 +44 20 7946 0002,Microsoft Teams,LON,IT Helpdesk,Active
-+27 11 555 0001,Avaya,SAN,Switchboard,Active
-+27 11 555 0002,Avaya,SAN,Call Centre Queue,Active
-+44 1234 567890,Cisco,REA,Conference Room 1,Active
-+44 1234 567891,,REA,,Reserved
++27 11 555 0001,Cisco Phone,SAN,Switchboard,Active
++27 11 555 0002,Nice CxOne,SAN,Call Centre Queue,Active
++44 1234 567890,Cisco IP Trade,REA,Trading Desk 1,Active
++44 1234 567891,Cisco WebEx,REA,Conference Room 1,Active
 +1 212 555 0001,Microsoft Teams,NEW,New York Reception,Active
-+1 212 555 0002,Microsoft Teams,NEW,,Inactive
++1 212 555 0002,,,  ,Reserved

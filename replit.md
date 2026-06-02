@@ -7,7 +7,7 @@ VoiceView is a full-stack web application for managing corporate site infrastruc
 The system enables IT teams to:
 - Catalog sites by geographic region (North, South, East, West)
 - Document connectivity details including ISP information and local IT contacts
-- Track telephony platforms (Microsoft Teams, Avaya, Cisco, CX One, etc.) with number ranges
+- Track telephony platforms (Microsoft Teams, Cisco Phone, Cisco IP Trade, Cisco WebEx, Nice CxOne) with number ranges
 - Manage site services (Switchboard, Recording, TMS)
 - Store and reference network diagrams
 
