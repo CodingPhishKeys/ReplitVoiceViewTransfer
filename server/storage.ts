@@ -70,6 +70,7 @@ export interface IStorage {
   bulkCreatePhoneNumbers(data: InsertPhoneNumber[]): Promise<{ inserted: number; skipped: number }>;
   updatePhoneNumber(id: number, data: Partial<InsertPhoneNumber>): Promise<PhoneNumber>;
   deletePhoneNumber(id: number): Promise<void>;
+  deleteAllPhoneNumbers(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -258,6 +259,11 @@ export class DatabaseStorage implements IStorage {
 
   async deletePhoneNumber(id: number): Promise<void> {
     await db.delete(phoneNumbers).where(eq(phoneNumbers.id, id));
+  }
+
+  async deleteAllPhoneNumbers(): Promise<number> {
+    const result = await db.delete(phoneNumbers).returning({ id: phoneNumbers.id });
+    return result.length;
   }
 }
 

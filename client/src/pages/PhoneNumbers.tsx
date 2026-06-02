@@ -96,6 +96,18 @@ function useBulkImport() {
   });
 }
 
+function useClearAllNumbers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/phone-numbers", { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to clear");
+      return res.json() as Promise<{ deleted: number }>;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/phone-numbers"] }),
+  });
+}
+
 export default function PhoneNumbers() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -104,12 +116,14 @@ export default function PhoneNumbers() {
   const [siteId, setSiteId] = useState("");
   const [status, setStatus] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [clearAllOpen, setClearAllOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const { data: sites } = useSites();
   const bulkImport = useBulkImport();
   const deleteNum = useDeletePhoneNumber();
+  const clearAll = useClearAllNumbers();
 
   // Debounce search
   useEffect(() => {
@@ -149,15 +163,19 @@ export default function PhoneNumbers() {
       const descIdx = headers.findIndex(h => h.includes("desc"));
       const statusIdx = headers.findIndex(h => h.includes("status"));
 
-      const siteCodeMap = Object.fromEntries((sites || []).map(s => [s.code?.toLowerCase() ?? "", s.id]));
+      const siteNameMap = Object.fromEntries((sites || []).map(s => [s.name.toLowerCase(), s.id]));
+      const siteCodeMap = Object.fromEntries((sites || []).map(s => [(s.code ?? "").toLowerCase(), s.id]));
 
       const rows = lines.slice(1).map(line => {
         const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ""));
-        const siteCode = siteCodeIdx !== -1 ? cols[siteCodeIdx]?.toLowerCase() : undefined;
+        const siteVal = siteCodeIdx !== -1 ? cols[siteCodeIdx]?.toLowerCase() : undefined;
+        const resolvedSiteId = siteVal
+          ? (siteNameMap[siteVal] ?? siteCodeMap[siteVal] ?? undefined)
+          : undefined;
         return {
           number: cols[numIdx],
           platform: platIdx !== -1 ? cols[platIdx] || undefined : undefined,
-          siteId: siteCode ? siteCodeMap[siteCode] : undefined,
+          siteId: resolvedSiteId,
           description: descIdx !== -1 ? cols[descIdx] || undefined : undefined,
           status: statusIdx !== -1 ? cols[statusIdx] || "Active" : "Active",
         };
@@ -196,6 +214,10 @@ export default function PhoneNumbers() {
             </div>
             <div className="flex items-center gap-2">
               <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setClearAllOpen(true)} disabled={!data?.total}>
+                Clear All
+              </Button>
               <a href="/phone-numbers-template.csv" download="phone-numbers-template.csv">
                 <Button variant="ghost" size="sm" type="button">
                   Download Template
@@ -321,6 +343,30 @@ export default function PhoneNumbers() {
           </div>
         )}
       </main>
+
+      {/* Clear All confirm */}
+      <Dialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Clear All Phone Numbers</DialogTitle>
+            <DialogDescription>
+              This will permanently delete all {data?.total.toLocaleString()} phone numbers. This cannot be undone — you can re-import your CSV afterwards.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setClearAllOpen(false)}>Cancel</Button>
+            <Button variant="destructive" className="flex-1" disabled={clearAll.isPending}
+              onClick={() => clearAll.mutate(undefined, {
+                onSuccess: (r) => {
+                  setClearAllOpen(false);
+                  toast({ title: `Cleared ${r.deleted.toLocaleString()} numbers` });
+                }
+              })}>
+              {clearAll.isPending ? "Clearing..." : "Yes, Clear All"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirm */}
       <Dialog open={deleteId !== null} onOpenChange={open => !open && setDeleteId(null)}>

@@ -315,6 +315,11 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  app.delete('/api/phone-numbers', async (req, res) => {
+    const count = await storage.deleteAllPhoneNumbers();
+    res.json({ deleted: count });
+  });
+
   // Seed Data
   await seedDatabase();
 

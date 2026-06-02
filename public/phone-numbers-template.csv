@@ -1,9 +1,9 @@
-number,platform,site_code,description,status
-+44 20 7946 0001,Microsoft Teams,LON,Reception Line,Active
-+44 20 7946 0002,Microsoft Teams,LON,IT Helpdesk,Active
-+27 11 555 0001,Cisco Phone,SAN,Switchboard,Active
-+27 11 555 0002,Nice CxOne,SAN,Call Centre Queue,Active
-+44 1234 567890,Cisco IP Trade,REA,Trading Desk 1,Active
-+44 1234 567891,Cisco WebEx,REA,Conference Room 1,Active
-+1 212 555 0001,Microsoft Teams,NEW,New York Reception,Active
+number,platform,site_name,description,status
++44 20 7946 0001,Microsoft Teams,London,Reception Line,Active
++44 20 7946 0002,Microsoft Teams,London,IT Helpdesk,Active
++27 11 555 0001,Cisco Phone,Sandton,Switchboard,Active
++27 11 555 0002,Nice CxOne,Sandton,Call Centre Queue,Active
++44 1234 567890,Cisco IP Trade,Reading,Trading Desk 1,Active
++44 1234 567891,Cisco WebEx,Reading,Conference Room 1,Active
++1 212 555 0001,Microsoft Teams,New York,New York Reception,Active
 +1 212 555 0002,,,  ,Reserved
