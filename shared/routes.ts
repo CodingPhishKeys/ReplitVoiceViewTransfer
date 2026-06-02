@@ -151,6 +151,39 @@ export const api = {
       responses: { 204: z.void() }
     }
   },
+  phoneNumbers: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/phone-numbers',
+      responses: { 200: z.object({
+        data: z.array(z.custom<any>()),
+        total: z.number(),
+        page: z.number(),
+        limit: z.number(),
+        totalPages: z.number(),
+      }) },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/phone-numbers',
+      responses: { 201: z.custom<any>() },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/phone-numbers/:id',
+      responses: { 200: z.custom<any>() },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/phone-numbers/:id',
+      responses: { 204: z.void() },
+    },
+    bulk: {
+      method: 'POST' as const,
+      path: '/api/phone-numbers/bulk',
+      responses: { 200: z.object({ inserted: z.number(), skipped: z.number() }) },
+    },
+  },
   documents: {
     create: {
       method: 'POST' as const,

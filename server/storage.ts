@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  sites, siteInfo, siteConnectivity, siteServices, siteTelephony, siteDiagrams, siteDocuments,
+  sites, siteInfo, siteConnectivity, siteServices, siteTelephony, siteDiagrams, siteDocuments, phoneNumbers,
   type Site, type InsertSite,
   type SiteInfo, type InsertSiteInfo,
   type SiteConnectivity, type InsertConnectivity,
@@ -8,8 +8,9 @@ import {
   type SiteTelephony, type InsertTelephony,
   type SiteDiagram, type InsertDiagram,
   type SiteDocument, type InsertDocument,
+  type PhoneNumber, type InsertPhoneNumber,
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, ilike, and, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Sites
@@ -55,6 +56,20 @@ export interface IStorage {
   createDocument(doc: InsertDocument): Promise<SiteDocument>;
   updateDocument(id: number, data: Omit<InsertDocument, "siteId">): Promise<SiteDocument>;
   deleteDocument(id: number): Promise<void>;
+
+  // Phone Numbers
+  getPhoneNumbers(params: {
+    page: number;
+    limit: number;
+    search?: string;
+    platform?: string;
+    siteId?: number;
+    status?: string;
+  }): Promise<{ data: PhoneNumber[]; total: number }>;
+  createPhoneNumber(data: InsertPhoneNumber): Promise<PhoneNumber>;
+  bulkCreatePhoneNumbers(data: InsertPhoneNumber[]): Promise<{ inserted: number; skipped: number }>;
+  updatePhoneNumber(id: number, data: Partial<InsertPhoneNumber>): Promise<PhoneNumber>;
+  deletePhoneNumber(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -201,6 +216,48 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: number): Promise<void> {
     await db.delete(siteDocuments).where(eq(siteDocuments.id, id));
+  }
+
+  async getPhoneNumbers(params: { page: number; limit: number; search?: string; platform?: string; siteId?: number; status?: string }) {
+    const { page, limit, search, platform, siteId, status } = params;
+    const conditions = [];
+    if (search) conditions.push(ilike(phoneNumbers.number, `%${search}%`));
+    if (platform) conditions.push(eq(phoneNumbers.platform, platform));
+    if (siteId) conditions.push(eq(phoneNumbers.siteId, siteId));
+    if (status) conditions.push(eq(phoneNumbers.status, status));
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [data, countResult] = await Promise.all([
+      db.select().from(phoneNumbers).where(where).limit(limit).offset((page - 1) * limit).orderBy(phoneNumbers.number),
+      db.select({ count: count() }).from(phoneNumbers).where(where),
+    ]);
+    return { data, total: Number(countResult[0].count) };
+  }
+
+  async createPhoneNumber(data: InsertPhoneNumber): Promise<PhoneNumber> {
+    const [num] = await db.insert(phoneNumbers).values(data).returning();
+    return num;
+  }
+
+  async bulkCreatePhoneNumbers(data: InsertPhoneNumber[]): Promise<{ inserted: number; skipped: number }> {
+    if (data.length === 0) return { inserted: 0, skipped: 0 };
+    const CHUNK = 500;
+    let inserted = 0;
+    for (let i = 0; i < data.length; i += CHUNK) {
+      const chunk = data.slice(i, i + CHUNK);
+      const result = await db.insert(phoneNumbers).values(chunk).onConflictDoNothing().returning();
+      inserted += result.length;
+    }
+    return { inserted, skipped: data.length - inserted };
+  }
+
+  async updatePhoneNumber(id: number, data: Partial<InsertPhoneNumber>): Promise<PhoneNumber> {
+    const [updated] = await db.update(phoneNumbers).set(data).where(eq(phoneNumbers.id, id)).returning();
+    return updated;
+  }
+
+  async deletePhoneNumber(id: number): Promise<void> {
+    await db.delete(phoneNumbers).where(eq(phoneNumbers.id, id));
   }
 }
 

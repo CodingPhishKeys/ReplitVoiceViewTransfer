@@ -7,7 +7,8 @@ import {
   ChevronDown,
   ChevronRight,
   LayoutDashboard,
-  Phone
+  Phone,
+  Hash
 } from "lucide-react";
 import { useSites } from "@/hooks/use-voiceview";
 import { useState, useMemo } from "react";
@@ -165,6 +166,16 @@ export function Sidebar() {
             </div>
           )}
         </div>
+
+        <Link href="/phone-numbers" className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+          location === "/phone-numbers"
+            ? "bg-blue-600/10 text-blue-400"
+            : "hover:bg-slate-800 hover:text-white"
+        )}>
+          <Hash className="h-4 w-4" />
+          Phone Numbers
+        </Link>
       </div>
 
       {/* Footer / Add Site */}

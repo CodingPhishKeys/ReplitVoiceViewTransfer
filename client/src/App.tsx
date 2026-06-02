@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import SiteDetail from "@/pages/SiteDetail";
 import TelephonyPlatform from "@/pages/TelephonyPlatform";
+import PhoneNumbers from "@/pages/PhoneNumbers";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home}/>
       <Route path="/sites/:id" component={SiteDetail} />
       <Route path="/telephony/:platform" component={TelephonyPlatform} />
+      <Route path="/phone-numbers" component={PhoneNumbers} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

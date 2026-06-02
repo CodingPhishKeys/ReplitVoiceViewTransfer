@@ -5,6 +5,7 @@ import { relations } from "drizzle-orm";
 
 // === Enums ===
 export const regions = ["North", "South", "East", "West"] as const;
+export const phoneNumberStatuses = ["Active", "Inactive", "Reserved", "Ported Out"] as const;
 export const telephonySystems = ["Microsoft Teams", "Avaya", "Cisco", "CX One", "IP Trade", "eFax", "Other"] as const;
 export const documentCategories = ["SOP", "Runbook", "Architecture", "Policy", "Guide", "Reference", "Other"] as const;
 
@@ -100,6 +101,15 @@ export const siteDiagrams = pgTable("site_diagrams", {
   fileName: text("file_name"),
 });
 
+export const phoneNumbers = pgTable("phone_numbers", {
+  id: serial("id").primaryKey(),
+  number: text("number").notNull(),
+  platform: text("platform"),
+  siteId: integer("site_id").references(() => sites.id),
+  description: text("description"),
+  status: text("status").default("Active").notNull(),
+});
+
 export const siteDocuments = pgTable("site_documents", {
   id: serial("id").primaryKey(),
   siteId: integer("site_id").references(() => sites.id).notNull(),
@@ -164,6 +174,7 @@ export const insertTelephonySchema = createInsertSchema(siteTelephony).omit({ id
 
 export const insertDiagramSchema = createInsertSchema(siteDiagrams).omit({ id: true });
 export const insertDocumentSchema = createInsertSchema(siteDocuments).omit({ id: true });
+export const insertPhoneNumberSchema = createInsertSchema(phoneNumbers).omit({ id: true });
 
 // === Types ===
 
@@ -187,5 +198,8 @@ export type InsertDiagram = z.infer<typeof insertDiagramSchema>;
 
 export type SiteDocument = typeof siteDocuments.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type PhoneNumber = typeof phoneNumbers.$inferSelect;
+export type InsertPhoneNumber = z.infer<typeof insertPhoneNumberSchema>;
 
 export type Region = typeof regions[number];

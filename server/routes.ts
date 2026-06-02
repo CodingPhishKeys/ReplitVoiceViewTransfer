@@ -244,6 +244,77 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // === Phone Numbers ===
+  app.get('/api/phone-numbers', async (req, res) => {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(200, Math.max(10, Number(req.query.limit) || 50));
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+    const platform = typeof req.query.platform === 'string' ? req.query.platform : undefined;
+    const siteId = req.query.siteId ? Number(req.query.siteId) : undefined;
+    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+
+    const result = await storage.getPhoneNumbers({ page, limit, search, platform, siteId, status });
+    res.json({
+      data: result.data,
+      total: result.total,
+      page,
+      limit,
+      totalPages: Math.ceil(result.total / limit),
+    });
+  });
+
+  app.post('/api/phone-numbers', async (req, res) => {
+    try {
+      const { insertPhoneNumberSchema } = await import('@shared/schema');
+      const input = insertPhoneNumberSchema.parse(req.body);
+      const num = await storage.createPhoneNumber(input);
+      res.status(201).json(num);
+    } catch (err) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      throw err;
+    }
+  });
+
+  app.post('/api/phone-numbers/bulk', async (req, res) => {
+    try {
+      const rows = z.array(z.object({
+        number: z.string(),
+        platform: z.string().optional(),
+        siteId: z.number().optional(),
+        description: z.string().optional(),
+        status: z.string().optional(),
+      })).parse(req.body);
+      const result = await storage.bulkCreatePhoneNumbers(rows.map(r => ({
+        number: r.number,
+        platform: r.platform ?? null,
+        siteId: r.siteId ?? null,
+        description: r.description ?? null,
+        status: r.status ?? 'Active',
+      })));
+      res.json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      throw err;
+    }
+  });
+
+  app.put('/api/phone-numbers/:id', async (req, res) => {
+    try {
+      const { insertPhoneNumberSchema } = await import('@shared/schema');
+      const input = insertPhoneNumberSchema.partial().parse(req.body);
+      const num = await storage.updatePhoneNumber(Number(req.params.id), input);
+      res.json(num);
+    } catch (err) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      throw err;
+    }
+  });
+
+  app.delete('/api/phone-numbers/:id', async (req, res) => {
+    await storage.deletePhoneNumber(Number(req.params.id));
+    res.status(204).send();
+  });
+
   // Seed Data
   await seedDatabase();
 
