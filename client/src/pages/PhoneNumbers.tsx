@@ -196,6 +196,11 @@ export default function PhoneNumbers() {
             </div>
             <div className="flex items-center gap-2">
               <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
+              <a href="/phone-numbers-template.csv" download="phone-numbers-template.csv">
+                <Button variant="ghost" size="sm" type="button">
+                  Download Template
+                </Button>
+              </a>
               <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={bulkImport.isPending}>
                 <Upload className="h-4 w-4 mr-2" />
                 {bulkImport.isPending ? "Importing..." : "Import CSV"}

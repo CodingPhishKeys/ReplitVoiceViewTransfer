@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "sOsSrcO-O4KuZrdKohWHx"
+uri = "file://public/phone-numbers-template.csv"
+type = "table"
+title = "Phone Numbers Import Template"
