@@ -1,0 +1,1 @@
+- [Drizzle inArray static import](drizzle-inarray-import.md) — always import inArray statically from drizzle-orm; dynamic await import() inside storage methods fails silently.
