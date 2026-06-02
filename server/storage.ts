@@ -10,7 +10,7 @@ import {
   type SiteDocument, type InsertDocument,
   type PhoneNumber, type InsertPhoneNumber,
 } from "@shared/schema";
-import { eq, ilike, and, count, sql } from "drizzle-orm";
+import { eq, ilike, and, count, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Sites
@@ -270,14 +270,12 @@ export class DatabaseStorage implements IStorage {
 
   async bulkDeletePhoneNumbers(ids: number[]): Promise<number> {
     if (ids.length === 0) return 0;
-    const { inArray } = await import("drizzle-orm");
     const result = await db.delete(phoneNumbers).where(inArray(phoneNumbers.id, ids)).returning({ id: phoneNumbers.id });
     return result.length;
   }
 
   async bulkUpdatePhoneNumbers(ids: number[], updates: { platform?: string | null; siteId?: number | null; status?: string; description?: string | null }): Promise<number> {
     if (ids.length === 0) return 0;
-    const { inArray } = await import("drizzle-orm");
     const result = await db.update(phoneNumbers).set(updates).where(inArray(phoneNumbers.id, ids)).returning({ id: phoneNumbers.id });
     return result.length;
   }

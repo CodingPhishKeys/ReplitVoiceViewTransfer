@@ -321,23 +321,33 @@ export async function registerRoutes(
   });
 
   app.post('/api/phone-numbers/bulk-delete', async (req, res) => {
-    const { ids } = z.object({ ids: z.array(z.number()) }).parse(req.body);
-    const count = await storage.bulkDeletePhoneNumbers(ids);
-    res.json({ deleted: count });
+    try {
+      const { ids } = z.object({ ids: z.array(z.number()) }).parse(req.body);
+      const count = await storage.bulkDeletePhoneNumbers(ids);
+      res.json({ deleted: count });
+    } catch (e) {
+      console.error("bulk-delete error:", e);
+      res.status(500).json({ error: String(e) });
+    }
   });
 
   app.patch('/api/phone-numbers/bulk-update', async (req, res) => {
-    const body = z.object({
-      ids: z.array(z.number()),
-      updates: z.object({
-        platform: z.string().nullable().optional(),
-        siteId: z.number().nullable().optional(),
-        status: z.string().optional(),
-        description: z.string().nullable().optional(),
-      }),
-    }).parse(req.body);
-    const count = await storage.bulkUpdatePhoneNumbers(body.ids, body.updates);
-    res.json({ updated: count });
+    try {
+      const body = z.object({
+        ids: z.array(z.number()),
+        updates: z.object({
+          platform: z.string().nullable().optional(),
+          siteId: z.number().nullable().optional(),
+          status: z.string().optional(),
+          description: z.string().nullable().optional(),
+        }),
+      }).parse(req.body);
+      const count = await storage.bulkUpdatePhoneNumbers(body.ids, body.updates);
+      res.json({ updated: count });
+    } catch (e) {
+      console.error("bulk-update error:", e);
+      res.status(500).json({ error: String(e) });
+    }
   });
 
   // Seed Data

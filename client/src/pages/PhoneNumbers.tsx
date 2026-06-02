@@ -97,25 +97,35 @@ function useBulkImport() {
 
 function useBulkDelete() {
   const qc = useQueryClient();
+  const { toast } = useToast();
   return useMutation({
     mutationFn: async (ids: number[]) => {
       const res = await fetch("/api/phone-numbers/bulk-delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
-      if (!res.ok) throw new Error("Bulk delete failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Bulk delete failed");
+      }
       return res.json() as Promise<{ deleted: number }>;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/phone-numbers"] }),
+    onError: (e: Error) => toast({ title: "Delete failed", description: e.message, variant: "destructive" }),
   });
 }
 
 function useBulkUpdate() {
   const qc = useQueryClient();
+  const { toast } = useToast();
   return useMutation({
     mutationFn: async ({ ids, updates }: { ids: number[]; updates: Record<string, any> }) => {
       const res = await fetch("/api/phone-numbers/bulk-update", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids, updates }) });
-      if (!res.ok) throw new Error("Bulk update failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Bulk update failed");
+      }
       return res.json() as Promise<{ updated: number }>;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/phone-numbers"] }),
+    onError: (e: Error) => toast({ title: "Update failed", description: e.message, variant: "destructive" }),
   });
 }
 
