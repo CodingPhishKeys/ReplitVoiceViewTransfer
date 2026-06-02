@@ -71,6 +71,8 @@ export interface IStorage {
   updatePhoneNumber(id: number, data: Partial<InsertPhoneNumber>): Promise<PhoneNumber>;
   deletePhoneNumber(id: number): Promise<void>;
   deleteAllPhoneNumbers(): Promise<number>;
+  bulkDeletePhoneNumbers(ids: number[]): Promise<number>;
+  bulkUpdatePhoneNumbers(ids: number[], updates: { platform?: string | null; siteId?: number | null; status?: string; description?: string | null }): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -263,6 +265,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAllPhoneNumbers(): Promise<number> {
     const result = await db.delete(phoneNumbers).returning({ id: phoneNumbers.id });
+    return result.length;
+  }
+
+  async bulkDeletePhoneNumbers(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const { inArray } = await import("drizzle-orm");
+    const result = await db.delete(phoneNumbers).where(inArray(phoneNumbers.id, ids)).returning({ id: phoneNumbers.id });
+    return result.length;
+  }
+
+  async bulkUpdatePhoneNumbers(ids: number[], updates: { platform?: string | null; siteId?: number | null; status?: string; description?: string | null }): Promise<number> {
+    if (ids.length === 0) return 0;
+    const { inArray } = await import("drizzle-orm");
+    const result = await db.update(phoneNumbers).set(updates).where(inArray(phoneNumbers.id, ids)).returning({ id: phoneNumbers.id });
     return result.length;
   }
 }

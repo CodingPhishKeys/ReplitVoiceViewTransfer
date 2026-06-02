@@ -320,6 +320,26 @@ export async function registerRoutes(
     res.json({ deleted: count });
   });
 
+  app.post('/api/phone-numbers/bulk-delete', async (req, res) => {
+    const { ids } = z.object({ ids: z.array(z.number()) }).parse(req.body);
+    const count = await storage.bulkDeletePhoneNumbers(ids);
+    res.json({ deleted: count });
+  });
+
+  app.patch('/api/phone-numbers/bulk-update', async (req, res) => {
+    const body = z.object({
+      ids: z.array(z.number()),
+      updates: z.object({
+        platform: z.string().nullable().optional(),
+        siteId: z.number().nullable().optional(),
+        status: z.string().optional(),
+        description: z.string().nullable().optional(),
+      }),
+    }).parse(req.body);
+    const count = await storage.bulkUpdatePhoneNumbers(body.ids, body.updates);
+    res.json({ updated: count });
+  });
+
   // Seed Data
   await seedDatabase();
 
