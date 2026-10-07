@@ -1,4 +1,6 @@
 import { db } from "./db";
+import { z } from "zod";
+import { telephonySystems } from "@shared/schema";
 import {
   sites, siteInfo, siteConnectivity, siteServices, siteTelephony, siteDiagrams, siteDocuments, phoneNumbers,
   type Site, type InsertSite,
@@ -175,7 +177,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(siteTelephony)
       .innerJoin(sites, eq(siteTelephony.siteId, sites.id))
-      .where(eq(siteTelephony.platform, platform));
+      .where(eq(siteTelephony.platform, z.enum(telephonySystems).parse(platform)));
     return results.map(r => ({ ...r.site_telephony, site: r.sites }));
   }
 

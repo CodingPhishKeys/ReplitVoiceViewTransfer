@@ -344,7 +344,7 @@ function EditInfoDialog({ info, siteId }: { info: SiteInfo; siteId: number }) {
   });
 
   const onSubmit = (data: z.infer<typeof insertSiteInfoSchema>) => {
-    updateInfo.mutate({ id: info.id, siteId, ...data }, {
+    updateInfo.mutate({ ...data, id: info.id, siteId }, {
       onSuccess: () => setOpen(false)
     });
   };

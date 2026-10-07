@@ -48,6 +48,7 @@ export const sites = pgTable("sites", {
   name: text("name").notNull(),
   region: text("region", { enum: regions }).notNull(),
   code: text("code"),
+  description: text("description"),
 });
 
 export const siteInfo = pgTable("site_info", {

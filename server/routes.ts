@@ -110,11 +110,27 @@ export async function registerRoutes(
   });
 
   // === Telephony ===
-  app.get(api.telephony.byPlatform.path, async (req, res) => {
-    const platform = decodeURIComponent(req.params.platform);
+app.get(api.telephony.byPlatform.path, async (req, res) => {
+  const platform = req.params.platform;
+
+  if (typeof platform !== "string") {
+    return res.status(400).json({
+      message: "A single telephony platform is required",
+    });
+  }
+
+  try {
     const records = await storage.getTelephonyByPlatform(platform);
     res.json(records);
-  });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Unsupported telephony platform",
+      });
+    }
+    throw err;
+  }
+});
 
   app.post(api.telephony.create.path, async (req, res) => {
     try {

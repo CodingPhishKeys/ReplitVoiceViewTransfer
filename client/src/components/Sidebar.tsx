@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { 
   MapPin, 
