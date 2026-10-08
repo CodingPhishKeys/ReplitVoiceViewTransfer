@@ -24,7 +24,7 @@ export default function Home() {
           <div className="space-y-4">
             <h1 className="text-3xl font-display font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
             <p className="text-muted-foreground text-lg max-w-3xl">
-              Welcome to VoiceView. Access detailed infrastructure information, connectivity diagrams, and telephony services for all managed locations.
+              Welcome to One UC View. Access detailed infrastructure information, connectivity diagrams, and telephony services for all managed locations.
             </p>
           </div>
 

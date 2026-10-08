@@ -68,7 +68,7 @@ export function Sidebar() {
         <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/20">
           <Activity className="h-5 w-5 text-white" />
         </div>
-        <span className="font-display font-bold text-xl text-white tracking-tight">VoiceView</span>
+        <span className="font-display font-bold text-xl text-white tracking-tight">One UC View</span>
       </div>
 
       {/* Navigation */}
